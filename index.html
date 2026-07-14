@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ehtirom Workflow — Kirish</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="frontend/css/style.css">
+</head>
+<body>
+
+<div class="login-shell">
+  <div class="login-card">
+    <div class="login-card__mark">EW</div>
+    <h1>Ehtirom Workflow</h1>
+    <p class="sub">Filial hujjatlarini nazorat qilish tizimi</p>
+
+    <div id="alert" class="alert alert-error"></div>
+
+    <form id="loginForm">
+      <div class="field">
+        <label for="username">Login</label>
+        <input type="text" id="username" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="password">Parol</label>
+        <input type="password" id="password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block" id="submitBtn">Kirish</button>
+    </form>
+  </div>
+</div>
+
+<script src="frontend/js/config.js"></script>
+<script src="frontend/js/api.js"></script>
+<script src="frontend/js/login.js"></script>
+</body>
+</html>
