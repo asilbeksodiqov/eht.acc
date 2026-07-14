@@ -3,7 +3,7 @@
   const existing = getSession();
   if (existing && existing.role) {
     const role = String(existing.role).trim().toLowerCase();
-    window.location.href = role === 'admin' ? 'admin.html' : 'branch.html';
+    window.location.href = role === 'admin' ? 'frontend/admin.html' : 'frontend/branch.html';
     return;
   }
 
@@ -37,6 +37,6 @@
       branch: res.branch
     });
 
-    window.location.href = res.role === 'admin' ? 'admin.html' : 'branch.html';
+    window.location.href = res.role === 'admin' ? 'frontend/admin.html' : 'frontend/branch.html';
   });
 })();
