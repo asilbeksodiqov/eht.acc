@@ -69,7 +69,7 @@ function requireAuth(role) {
   const session = getSession();
   if (!session || !session.role) {
     clearSession();
-    window.location.href = 'index.html';
+    window.location.href = '../index.html';
     return null;
   }
   const sessionRole = String(session.role).trim().toLowerCase();
@@ -84,7 +84,7 @@ function requireAuth(role) {
 
 function logout() {
   clearSession();
-  window.location.href = 'index.html';
+  window.location.href = '../index.html';
 }
 
 // ---------- Umumiy UI yordamchilari ----------
