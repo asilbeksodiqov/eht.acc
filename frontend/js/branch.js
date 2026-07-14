@@ -2,7 +2,7 @@
   const session = requireAuth('branch');
   if (!session) return;
 
-  document.getElementById('branchLabel').textContent = session.branch + ' filiali';
+  document.getElementById('branchLabel').textContent = session.branch;
 
   const docTypeSelect = document.getElementById('docType');
   const fileInput = document.getElementById('fileInput');
