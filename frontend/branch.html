@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ehtirom Workflow — Filial paneli</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar__brand">
+    <div class="topbar__mark">EW</div>
+    <div>
+      <div class="topbar__title">Ehtirom Workflow</div>
+      <div class="topbar__subtitle" id="branchLabel">Filial paneli</div>
+    </div>
+  </div>
+  <div class="topbar__right">
+    <span class="badge-role">Filial</span>
+    <button class="btn-logout" onclick="logout()">Chiqish</button>
+  </div>
+</header>
+
+<main class="page">
+  <div class="page-head">
+    <h1>Hujjat yuborish</h1>
+    <p>Hujjat turini tanlang va faylni yuklang. Yuborilgach, admin ko'rib chiqadi.</p>
+  </div>
+
+  <div class="card">
+    <div id="submitAlert" class="alert alert-error"></div>
+    <form id="submitForm">
+      <div class="field">
+        <label for="docType">Hujjat turi</label>
+        <select id="docType" required>
+          <option value="">Tanlang...</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Fayl yoki rasm</label>
+        <label class="file-drop" id="dropLabel">
+          <input type="file" id="fileInput" multiple required>
+          <div class="file-drop__icon">📎</div>
+          <div class="file-drop__text">Fayl(lar)ni tanlash uchun bosing — bir nechtasini birga tanlashingiz mumkin</div>
+          <div class="file-drop__filename" id="fileNameLabel"></div>
+        </label>
+      </div>
+
+      <div class="btn-row">
+        <button type="submit" class="btn btn-accent btn-block" id="submitBtn">Yuborish</button>
+        <button type="button" class="btn btn-ghost" id="notAvailableBtn" style="display:none;">Mavjud emas</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="page-head" style="margin-top:36px;">
+    <h1>Mening yuborganlarim</h1>
+    <p>Yuborilgan hujjatlaringiz va ularning holati</p>
+  </div>
+
+  <div class="card">
+    <div class="field" style="max-width:260px;">
+      <label for="historyDateFilter">Sana bo'yicha filtr</label>
+      <input type="date" id="historyDateFilter">
+    </div>
+    <div id="historyList">
+      <div class="empty-state">
+        <div class="empty-state__icon">⏳</div>
+        <div class="empty-state__title">Yuklanmoqda...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="rankingCard">
+    <button type="button" class="collapsible-head" id="rankingToggle" aria-expanded="false">
+      <div>
+        <h2>Filiallar reytingi</h2>
+        <div class="card-desc" style="margin-bottom:0;">Xatolar soni bo'yicha (ko'pdan kamga)</div>
+      </div>
+      <span class="collapsible-chevron" id="rankingChevron">▾</span>
+    </button>
+    <div class="collapsible-body" id="rankingBody">
+      <div id="rankingList">
+        <div class="empty-state"><div class="empty-state__title">Yuklanmoqda...</div></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Qayta yuborish uchun yashirin fayl input (bir nechta fayl tanlash mumkin) -->
+<input type="file" id="resubmitFileInput" multiple style="display:none;">
+
+<!-- "Mavjud emas" tasdiqlash oynasi -->
+<div class="modal-overlay" id="notAvailableModal">
+  <div class="modal">
+    <h3 class="modal__title">Tasdiqlaysizmi?</h3>
+    <p class="modal__desc">
+      "<strong id="notAvailableDocTypeName"></strong>" hujjat turi filialingizda
+      rostdan ham mavjud emasligini tasdiqlaysizmi? Tasdiqlangach, bu holat
+      hisobotda "Mavjud emas" deb qayd etiladi.
+    </p>
+    <div class="modal__actions">
+      <button type="button" class="btn btn-ghost" id="notAvailableCancelBtn">Bekor qilish</button>
+      <button type="button" class="btn btn-danger" id="notAvailableConfirmBtn">Tasdiqlash</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/branch.js"></script>
+</body>
+</html>

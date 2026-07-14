@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ehtirom Workflow — Admin paneli</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar__brand">
+    <div class="topbar__mark">EW</div>
+    <div>
+      <div class="topbar__title">Ehtirom Workflow</div>
+      <div class="topbar__subtitle">Admin paneli</div>
+    </div>
+  </div>
+  <div class="topbar__right">
+    <span class="badge-role">Admin</span>
+    <button class="btn-logout" onclick="logout()">Chiqish</button>
+  </div>
+</header>
+
+<main class="page">
+  <div class="page-head">
+    <h1>Bugungi yuborilmaganlar</h1>
+    <p>Bugun hali yuborilmagan hujjatlar ro'yxati</p>
+  </div>
+
+  <div class="card" id="missingCard">
+    <button type="button" class="collapsible-head" id="missingToggle" aria-expanded="false">
+      <div>
+        <h2>Yuborilmaganlar ro'yxati <span class="count-badge" id="missingCountBadge">0</span></h2>
+        <div class="card-desc" style="margin-bottom:0;">Filial va hujjat turi bo'yicha</div>
+      </div>
+      <span class="collapsible-chevron" id="missingChevron">▾</span>
+    </button>
+    <div class="collapsible-body" id="missingBody">
+      <div class="field" style="max-width:320px;">
+        <label for="missingDocTypeFilter">Hujjat turi bo'yicha filtr</label>
+        <select id="missingDocTypeFilter">
+          <option value="">Barchasi</option>
+        </select>
+      </div>
+      <div id="missingList">
+        <div class="empty-state"><div class="empty-state__title">Yuklanmoqda...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-head" style="margin-top:36px;">
+    <h1>Hujjatlarni ko'rib chiqish</h1>
+    <p>Filial, sana va hujjat turini tanlab, yuborilgan hujjatlarni tekshiring</p>
+  </div>
+
+  <div class="card">
+    <div class="search-grid">
+      <div class="field" style="margin-bottom:0;">
+        <label for="branchSelect">Filial</label>
+        <select id="branchSelect">
+          <option value="">Barchasi</option>
+        </select>
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label for="dateInput">Sana</label>
+        <input type="date" id="dateInput">
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label for="docTypeSelect">Hujjat turi</label>
+        <select id="docTypeSelect">
+          <option value="">Barchasi</option>
+        </select>
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label for="statusFilterSelect">Holati</label>
+        <select id="statusFilterSelect">
+          <option value="">Barchasi</option>
+          <option value="sent">Yuborilgan</option>
+          <option value="notSent">Yuborilmagan</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" id="searchBtn">Qidirish</button>
+    </div>
+  </div>
+
+  <div id="resultsWrap">
+    <div class="empty-state">
+      <div class="empty-state__icon">🔎</div>
+      <div class="empty-state__title">Qidiruv natijalari shu yerda ko'rinadi</div>
+      <div class="empty-state__desc">Filtrlarni tanlab "Qidirish" tugmasini bosing</div>
+    </div>
+  </div>
+
+  <div class="card" id="rankingCard">
+    <button type="button" class="collapsible-head" id="rankingToggle" aria-expanded="false">
+      <div>
+        <h2>Filiallar reytingi</h2>
+        <div class="card-desc" style="margin-bottom:0;">Xatolar soni bo'yicha (ko'pdan kamga)</div>
+      </div>
+      <span class="collapsible-chevron" id="rankingChevron">▾</span>
+    </button>
+    <div class="collapsible-body" id="rankingBody">
+      <div id="rankingList">
+        <div class="empty-state"><div class="empty-state__title">Yuklanmoqda...</div></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
