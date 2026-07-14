@@ -2,7 +2,7 @@
   const session = requireAuth('branch');
   if (!session) return;
 
-  document.getElementById('branchLabel').textContent = session.branch;
+  document.getElementById('branchLabel').textContent = session.branch + ' filiali';
 
   const docTypeSelect = document.getElementById('docType');
   const fileInput = document.getElementById('fileInput');
@@ -26,6 +26,30 @@
 
   let resubmitTargetId = null;
   let docTypesData = [];
+
+  // Faqat shu nomdagi hujjat turi uchun kunlik soat oynasi (frontend
+  // tomonda tekshiriladi). Kerak bo'lsa shu ro'yxatga boshqa hujjat
+  // turlarini ham xuddi shunday qo'shish mumkin.
+  const HOURLY_WINDOW_DOC_TYPES = {
+    'Касса хужжатлари': { startHour: 7, endHour: 10 }
+  };
+
+  // Berilgan hujjat turi uchun hozir soat oynasi ochiqmi (agar shu turga
+  // cheklov belgilangan bo'lsa). Cheklov yo'q turlar uchun har doim true.
+  function isHourWindowOpen_(docTypeName) {
+    const win = HOURLY_WINDOW_DOC_TYPES[docTypeName];
+    if (!win) return true;
+    const now = new Date();
+    const nowInMinutes = now.getHours() * 60 + now.getMinutes();
+    return nowInMinutes >= win.startHour * 60 && nowInMinutes < win.endHour * 60;
+  }
+
+  function hourWindowLabel_(docTypeName) {
+    const win = HOURLY_WINDOW_DOC_TYPES[docTypeName];
+    if (!win) return '';
+    const fmt = h => String(h).padStart(2, '0') + ':00';
+    return `soat ${fmt(win.startHour)} dan ${fmt(win.endHour)} gacha`;
+  }
 
   init();
 
@@ -65,6 +89,9 @@
       if (Number(dt.period) > 1) label += ` (har ${dt.period} kunda)`;
       if (!dt.isOpenToday) {
         label += ' — bugun yopiq';
+        opt.disabled = true;
+      } else if (!isHourWindowOpen_(dt.name)) {
+        label += ` — hozir yopiq (${hourWindowLabel_(dt.name)} ochiq)`;
         opt.disabled = true;
       }
       opt.textContent = label;
@@ -142,6 +169,10 @@
     const files = fileInput.files;
     if (!docType || !files.length) {
       showAlert(submitAlert, 'Hujjat turini tanlang va kamida bitta fayl yuklang');
+      return;
+    }
+    if (!isHourWindowOpen_(docType)) {
+      showAlert(submitAlert, `"${docType}" hujjatini faqat ${hourWindowLabel_(docType)} yuborish mumkin`);
       return;
     }
 
