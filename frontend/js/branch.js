@@ -14,15 +14,11 @@
   const historyDateFilter = document.getElementById('historyDateFilter');
   const resubmitFileInput = document.getElementById('resubmitFileInput');
   const rankingList = document.getElementById('rankingList');
-  const rankingToggle = document.getElementById('rankingToggle');
-  const rankingBody = document.getElementById('rankingBody');
-  const rankingChevron = document.getElementById('rankingChevron');
-
-  const notAvailableBtn = document.getElementById('notAvailableBtn');
-  const notAvailableModal = document.getElementById('notAvailableModal');
-  const notAvailableDocTypeName = document.getElementById('notAvailableDocTypeName');
-  const notAvailableCancelBtn = document.getElementById('notAvailableCancelBtn');
-  const notAvailableConfirmBtn = document.getElementById('notAvailableConfirmBtn');
+  const rankingOpenBtn = document.getElementById('rankingOpenBtn');
+  const rankingModal = document.getElementById('rankingModal');
+  const rankingCloseBtn = document.getElementById('rankingCloseBtn');
+  const videoTelegramField = document.getElementById('videoTelegramField');
+  const videoTelegramCheck = document.getElementById('videoTelegramCheck');
 
   let resubmitTargetId = null;
   let docTypesData = [];
@@ -71,11 +67,14 @@
     return `${yyyy}-${mm}-${dd}`;
   }
 
-  // Reyting oynasi standart holatda yopiq — dropdown orqali ochiladi
-  rankingToggle.addEventListener('click', () => {
-    const isOpen = rankingBody.classList.toggle('is-open');
-    rankingChevron.classList.toggle('is-open', isOpen);
-    rankingToggle.setAttribute('aria-expanded', String(isOpen));
+  // Reyting — yuqoridagi kichik tugma bosilganda modal oynada ochiladi
+  rankingOpenBtn.addEventListener('click', () => {
+    rankingModal.classList.add('show');
+    loadRanking();
+  });
+  rankingCloseBtn.addEventListener('click', () => rankingModal.classList.remove('show'));
+  rankingModal.addEventListener('click', (e) => {
+    if (e.target === rankingModal) rankingModal.classList.remove('show');
   });
 
   async function loadDocTypes() {
@@ -86,9 +85,9 @@
       const opt = document.createElement('option');
       opt.value = dt.name;
       let label = dt.name;
-      if (Number(dt.period) > 1) label += ` (har ${dt.period} kunda)`;
+      if (Number(dt.period) > 1) label;
       if (!dt.isOpenToday) {
-        label += ' — bugun yopiq';
+        label += ' — bugun dam kuni, yopiq';
         opt.disabled = true;
       } else if (!isHourWindowOpen_(dt.name)) {
         label += ` — hozir yopiq (${hourWindowLabel_(dt.name)} ochiq)`;
@@ -99,59 +98,29 @@
     });
   }
 
-  // 15 kunda (yoki boshqa davriylikda) bir marta yuboriladigan hujjat turi
-  // ochilgan kunda tanlanganda, "Yuborish" tugmasi yonida "Mavjud emas"
-  // tugmasi ham chiqadi.
-  docTypeSelect.addEventListener('change', updateNotAvailableButton);
+  // byWho=2 (kassir) bo'lgan hujjat turlari tanlanganda, "Video Telegram
+  // orqali jo'natildi" degan ixtiyoriy checkbox ko'rsatiladi. Belgilash
+  // majburiy emas — filial xohlasa belgilaydi, xohlamasa bo'sh qoldiradi.
+  docTypeSelect.addEventListener('change', () => {
+    const selected = docTypesData.find(dt => dt.name === docTypeSelect.value);
+    const showCheckbox = !!selected && Number(selected.byWho) === 2;
+    videoTelegramField.style.display = showCheckbox ? '' : 'none';
+    if (!showCheckbox) videoTelegramCheck.checked = false;
+  });
 
-  function updateNotAvailableButton() {
-    const dt = docTypesData.find(d => d.name === docTypeSelect.value);
-    const showBtn = !!dt && Number(dt.period) > 1 && dt.isOpenToday;
-    notAvailableBtn.style.display = showBtn ? '' : 'none';
+  // Video fayl tanlanganligini tekshiradi — video yuborish taqiqlangan.
+  function hasVideoFile_(fileList) {
+    return Array.from(fileList).some(f => String(f.type || '').toLowerCase().indexOf('video/') === 0);
   }
-
-  notAvailableBtn.addEventListener('click', () => {
-    if (!docTypeSelect.value) return;
-    notAvailableDocTypeName.textContent = docTypeSelect.value;
-    notAvailableModal.classList.add('show');
-  });
-
-  notAvailableCancelBtn.addEventListener('click', () => {
-    notAvailableModal.classList.remove('show');
-  });
-
-  notAvailableConfirmBtn.addEventListener('click', async () => {
-    const docType = docTypeSelect.value;
-    if (!docType) {
-      notAvailableModal.classList.remove('show');
-      return;
-    }
-
-    const originalText = notAvailableConfirmBtn.textContent;
-    notAvailableConfirmBtn.disabled = true;
-    notAvailableConfirmBtn.innerHTML = '<span class="spinner"></span>';
-
-    const res = await apiPost('markNotAvailable', { branch: session.branch, docType });
-
-    notAvailableConfirmBtn.disabled = false;
-    notAvailableConfirmBtn.textContent = originalText;
-    notAvailableModal.classList.remove('show');
-
-    if (!res.success) {
-      alert(res.message || 'Amalni bajarishda xatolik yuz berdi');
-      return;
-    }
-
-    hideAlert(submitAlert);
-    showAlert(submitAlert, `"${docType}" mavjud emas deb qayd etildi`, 'success');
-    submitForm.reset();
-    fileNameLabel.textContent = '';
-    notAvailableBtn.style.display = 'none';
-    loadHistory();
-  });
 
   fileInput.addEventListener('change', () => {
     const files = fileInput.files;
+    if (hasVideoFile_(files)) {
+      alert('Video fayl yuborish mumkin emas. Faqat hujjat yoki rasm tanlang.');
+      fileInput.value = '';
+      fileNameLabel.textContent = '';
+      return;
+    }
     if (!files.length) {
       fileNameLabel.textContent = '';
     } else if (files.length === 1) {
@@ -175,6 +144,10 @@
       showAlert(submitAlert, `"${docType}" hujjatini faqat ${hourWindowLabel_(docType)} yuborish mumkin`);
       return;
     }
+    if (hasVideoFile_(files)) {
+      showAlert(submitAlert, 'Video fayl yuborish mumkin emas. Faqat hujjat yoki rasm tanlang.');
+      return;
+    }
 
     submitBtn.disabled = true;
     submitBtn.textContent = 'Yuborilmoqda...';
@@ -188,13 +161,14 @@
       const res = await apiPost('submitDocument', {
         branch: session.branch,
         docType,
-        files: filesPayload
+        files: filesPayload,
+        videoSentViaTelegram: videoTelegramField.style.display !== 'none' && videoTelegramCheck.checked
       });
 
       if (res.success) {
         submitForm.reset();
         fileNameLabel.textContent = '';
-        updateNotAvailableButton();
+        videoTelegramField.style.display = 'none';
         showAlert(submitAlert, 'Hujjat muvaffaqiyatli yuborildi', 'success');
       } else {
         showAlert(submitAlert, res.message || 'Yuborishda xatolik yuz berdi');
@@ -236,11 +210,32 @@
         resubmitFileInput.click();
       });
     });
+
+    document.querySelectorAll('[data-ack]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const submissionId = btn.getAttribute('data-ack');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner spinner-dark"></span>';
+        const res = await apiPost('ackComment', { submissionId, branch: session.branch });
+        if (!res.success) {
+          alert(res.message || 'Amalni bajarishda xatolik yuz berdi');
+          btn.disabled = false;
+          btn.textContent = 'Tushunarli';
+          return;
+        }
+        loadHistory();
+      });
+    });
   }
 
   resubmitFileInput.addEventListener('change', async () => {
     const files = resubmitFileInput.files;
     if (!files.length || !resubmitTargetId) return;
+    if (hasVideoFile_(files)) {
+      alert('Video fayl yuborish mumkin emas. Faqat hujjat yoki rasm tanlang.');
+      resubmitFileInput.value = '';
+      return;
+    }
 
     const btn = document.querySelector(`[data-resubmit="${resubmitTargetId}"]`);
     const originalText = btn ? btn.textContent : '';
@@ -304,6 +299,17 @@
       ? `<div class="history-item__note"><strong>${escapeHtml(item.errorType || 'Izoh')}:</strong> ${escapeHtml(item.comment || '')}</div>`
       : '';
 
+    // Admin izoh bilan tasdiqlagan hujjatlar uchun "Tushunarli" tugmasi —
+    // bosilgach admin panelida "filial o'qidi" belgisi chiqadi.
+    const hasApprovedComment = item.status === 'Tasdiqlandi' && (item.errorType || item.comment);
+    let ackBlock = '';
+    if (hasApprovedComment) {
+      ackBlock = `<div class="history-item__note"><strong>${escapeHtml(item.errorType || 'Izoh')}:</strong> ${escapeHtml(item.comment || '')}</div>`;
+      ackBlock += item.ackRead
+        ? `<div class="ack-badge">✅ Tushunarli deb belgilandi</div>`
+        : `<button class="btn btn-ghost btn-sm ack-btn" data-ack="${escapeHtml(item.submissionId)}">Tushunarli</button>`;
+    }
+
     return `
       <div class="history-item">
         <div class="history-item__main">
@@ -311,6 +317,7 @@
           <div class="history-item__meta">${escapeHtml(item.uploadDate)}${item.uploadTime ? ' · ' + escapeHtml(item.uploadTime) : ''} · Versiya ${escapeHtml(String(item.version))} · ID: ${escapeHtml(item.submissionId)}</div>
           ${renderStepper(item.status)}
           ${note}
+          ${ackBlock}
         </div>
         <div class="history-item__actions">
           <span class="status-pill ${meta.cls}">${meta.label}</span>
