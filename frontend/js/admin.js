@@ -187,7 +187,10 @@
           </div>
 
           <div class="review-box" id="review-approve-${cssId(item.submissionId)}">
-
+            <div class="field">
+              <label>Xato turi (ixtiyoriy)</label>
+              <input type="text" id="errType-approve-${cssId(item.submissionId)}" placeholder="Masalan: imzo yetishmaydi">
+            </div>
             <div class="field">
               <label>Izoh</label>
               <textarea id="comment-approve-${cssId(item.submissionId)}" placeholder="Izoh yozing..."></textarea>
