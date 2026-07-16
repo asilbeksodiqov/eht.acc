@@ -632,9 +632,118 @@ button, input, select, textarea {
   gap: 10px;
 }
 
-/* ---------- Doc submit action row (Yuborish + Mavjud emas) ---------- */
+/* ---------- Doc submit action row ---------- */
 .btn-row {
   display: flex;
   gap: 10px;
 }
 .btn-row .btn-block { flex: 1; }
+
+/* ---------- Reyting: yuqoridagi kichik tugma + modal ---------- */
+.rank-launcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  font-size: 12.5px;
+  font-weight: 700;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  border: none;
+  cursor: pointer;
+}
+.rank-launcher:hover { background: var(--accent); color: #fff; }
+
+.modal--wide { max-width: 480px; }
+.modal__body-scroll {
+  max-height: 60vh;
+  overflow-y: auto;
+  margin: -4px -4px 0;
+  padding: 4px;
+}
+.modal__close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--ink-faint);
+  cursor: pointer;
+}
+.modal { position: relative; }
+
+/* ---------- Admin: ixcham (dropdown) natija ro'yxati ---------- */
+.compact-item {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md, 10px);
+  margin-bottom: 10px;
+  overflow: hidden;
+  background: var(--surface);
+}
+.compact-item__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 13px 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+.compact-item__head:hover { background: var(--bg); }
+.compact-item__names {
+  flex: 1;
+  min-width: 0;
+}
+.compact-item__branch {
+  font-weight: 800;
+  font-size: 14px;
+}
+.compact-item__doctype {
+  font-size: 12.5px;
+  color: var(--ink-faint);
+  margin-top: 2px;
+}
+.compact-item__chevron {
+  font-size: 13px;
+  color: var(--ink-faint);
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+.compact-item__chevron.is-open { transform: rotate(180deg); }
+.compact-item__body {
+  display: none;
+  padding: 4px 16px 16px;
+  border-top: 1px solid var(--line);
+}
+.compact-item__body.is-open { display: block; padding-top: 14px; }
+
+/* ---------- Izohni "tushunarli" deb belgilash ---------- */
+.ack-btn { margin-top: 8px; }
+.ack-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+  padding: 5px 10px;
+  border-radius: 999px;
+}
+
+/* ---------- Yuborilmaganlar: filtrlar grid ---------- */
+.missing-filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  max-width: 560px;
+}
+@media (max-width: 520px) {
+  .missing-filters { grid-template-columns: 1fr; }
+}
