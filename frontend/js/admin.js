@@ -204,6 +204,13 @@
   // ---------- Qidiruv ----------
   searchBtn.addEventListener('click', runSearch);
 
+  // Natijalarni sahifalash — bir sahifada ko'rsatiladigan hujjatlar soni.
+  // "Barchasi" filtri bilan qidirilganda ko'p hujjat chiqishi mumkin, shuning
+  // uchun natijalar 10 tadan bo'lib, "Keyingi 10 ta" tugmasi bilan ko'rsatiladi.
+  const SEARCH_PAGE_SIZE = 10;
+  let searchResultItems = [];
+  let searchCurrentPage = 0;
+
   async function runSearch() {
     resultsWrap.innerHTML = `<div class="empty-state"><div class="empty-state__icon">⏳</div><div class="empty-state__title">Qidirilmoqda...</div></div>`;
 
@@ -215,6 +222,7 @@
     });
 
     if (!res.success || !res.items.length) {
+      searchResultItems = [];
       resultsWrap.innerHTML = `
         <div class="empty-state">
           <div class="empty-state__icon">🗂️</div>
@@ -224,9 +232,52 @@
       return;
     }
 
-    resultsWrap.innerHTML = res.items.map(renderResultCard).join('');
+    searchResultItems = res.items;
+    searchCurrentPage = 0;
+    renderSearchResultsPage();
+  }
+
+  // Joriy sahifadagi hujjatlarni (10 tadan) chizadi va pastida
+  // "Oldingi/Keyingi" navigatsiya tugmalarini ko'rsatadi (agar kerak bo'lsa).
+  function renderSearchResultsPage() {
+    const totalPages = Math.max(1, Math.ceil(searchResultItems.length / SEARCH_PAGE_SIZE));
+    if (searchCurrentPage >= totalPages) searchCurrentPage = totalPages - 1;
+    if (searchCurrentPage < 0) searchCurrentPage = 0;
+
+    const start = searchCurrentPage * SEARCH_PAGE_SIZE;
+    const pageItems = searchResultItems.slice(start, start + SEARCH_PAGE_SIZE);
+
+    resultsWrap.innerHTML = pageItems.map(renderResultCard).join('') + renderSearchPagination(totalPages);
     bindToggleEvents();
-    res.items.forEach(bindCardEvents);
+    pageItems.forEach(bindCardEvents);
+
+    const prevBtn = document.getElementById('searchPagePrev');
+    const nextBtn = document.getElementById('searchPageNext');
+    if (prevBtn) prevBtn.addEventListener('click', () => {
+      if (searchCurrentPage > 0) {
+        searchCurrentPage--;
+        renderSearchResultsPage();
+        resultsWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+    if (nextBtn) nextBtn.addEventListener('click', () => {
+      if (searchCurrentPage < totalPages - 1) {
+        searchCurrentPage++;
+        renderSearchResultsPage();
+        resultsWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  }
+
+  function renderSearchPagination(totalPages) {
+    if (totalPages <= 1) return '';
+    const page = searchCurrentPage + 1;
+    return `
+      <div class="search-pagination" style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;">
+        <button type="button" class="btn btn-ghost btn-sm" id="searchPagePrev" ${searchCurrentPage === 0 ? 'disabled' : ''}>← Oldingi</button>
+        <span class="text-faint" style="font-size:13px;">Sahifa ${page} / ${totalPages} (jami ${searchResultItems.length} ta)</span>
+        <button type="button" class="btn btn-ghost btn-sm" id="searchPageNext" ${searchCurrentPage === totalPages - 1 ? 'disabled' : ''}>Keyingi →</button>
+      </div>`;
   }
 
   function renderResultCard(item) {
