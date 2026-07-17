@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ehtirom Workflow — Filiallar reytingi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/mobile.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar__brand">
+    <div class="topbar__mark">EW</div>
+    <div>
+      <div class="topbar__title">Ehtirom Workflow</div>
+      <div class="topbar__subtitle">Filiallar reytingi</div>
+    </div>
+  </div>
+  <div class="topbar__right">
+    <a href="#" class="rank-launcher" id="homeLinkBtn">🏠 Bosh sahifa</a>
+    <span class="badge-role" id="roleBadge">—</span>
+    <button class="btn-logout" onclick="logout()">Chiqish</button>
+  </div>
+</header>
+
+<main class="page">
+  <div class="page-head">
+    <h1>Filiallar reytingi</h1>
+    <p>Sana oralig'i va bo'lim bo'yicha filtrlab ko'rishingiz mumkin</p>
+  </div>
+
+  <div class="card">
+    <div class="rating-filters">
+      <div class="field" style="margin-bottom:0;">
+        <label for="startDateInput">Boshlanish sanasi</label>
+        <input type="date" id="startDateInput">
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label for="endDateInput">Tugash sanasi</label>
+        <input type="date" id="endDateInput">
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label for="typeFilterSelect">Bo'lim</label>
+        <select id="typeFilterSelect">
+          <option value="">Barchasi</option>
+          <option value="buxgalteriya">Buxgalteriya</option>
+          <option value="kassa">Kassa</option>
+        </select>
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label for="modeFilterSelect">Ko'rsatkich</label>
+        <select id="modeFilterSelect">
+          <option value="errors">Xatolar bo'yicha</option>
+          <option value="notSent">Yuborilmaganlar bo'yicha</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" id="rankingSearchBtn">Qidirish</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 id="rankingCardTitle">Xatolar soni bo'yicha (ko'pdan kamga)</h2>
+    <div class="card-desc" id="rankingCardDesc">Barcha vaqt uchun</div>
+    <div id="rankingList">
+      <div class="empty-state"><div class="empty-state__title">Yuklanmoqda...</div></div>
+    </div>
+  </div>
+</main>
+
+<!-- Telefon uchun pastki navigatsiya -->
+<nav class="bottom-nav">
+  <a href="branch.html" class="bottom-nav__item" id="homeNavItem">
+    <span class="bottom-nav__icon">🏠</span>
+    <span class="bottom-nav__label">Bosh sahifa</span>
+  </a>
+  <a href="rating.html" class="bottom-nav__item is-active">
+    <span class="bottom-nav__icon">🏆</span>
+    <span class="bottom-nav__label">Reyting</span>
+  </a>
+</nav>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/rating.js"></script>
+</body>
+</html>
