@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/mobile.css">
 </head>
 <body>
 
@@ -19,7 +20,7 @@
     </div>
   </div>
   <div class="topbar__right">
-    <button type="button" class="rank-launcher" id="rankingOpenBtn">🏆 Reyting</button>
+    <a href="rating.html" class="rank-launcher">🏆 Reyting</a>
     <span class="badge-role">Filial</span>
     <button class="btn-logout" onclick="logout()">Chiqish</button>
   </div>
@@ -88,19 +89,17 @@
 <!-- Qayta yuborish uchun yashirin fayl input (bir nechta fayl tanlash mumkin) -->
 <input type="file" id="resubmitFileInput" multiple style="display:none;" accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.zip,.rar,.txt">
 
-<!-- Reyting oynasi (modal) -->
-<div class="modal-overlay" id="rankingModal">
-  <div class="modal modal--wide">
-    <button type="button" class="modal__close" id="rankingCloseBtn">✕</button>
-    <h3 class="modal__title">Filiallar reytingi</h3>
-    <p class="modal__desc" style="margin-bottom:14px;">Xatolar soni bo'yicha (ko'pdan kamga)</p>
-    <div class="modal__body-scroll">
-      <div id="rankingList">
-        <div class="empty-state"><div class="empty-state__title">Yuklanmoqda...</div></div>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- Telefon uchun pastki navigatsiya -->
+<nav class="bottom-nav">
+  <a href="branch.html" class="bottom-nav__item is-active">
+    <span class="bottom-nav__icon">🏠</span>
+    <span class="bottom-nav__label">Bosh sahifa</span>
+  </a>
+  <a href="rating.html" class="bottom-nav__item">
+    <span class="bottom-nav__icon">🏆</span>
+    <span class="bottom-nav__label">Reyting</span>
+  </a>
+</nav>
 
 <script src="js/config.js"></script>
 <script src="js/api.js"></script>
