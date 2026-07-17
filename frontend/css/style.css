@@ -652,6 +652,7 @@ button, input, select, textarea {
   color: var(--accent-ink);
   border: none;
   cursor: pointer;
+  text-decoration: none;
 }
 .rank-launcher:hover { background: var(--accent); color: #fff; }
 
@@ -746,4 +747,36 @@ button, input, select, textarea {
 }
 @media (max-width: 520px) {
   .missing-filters { grid-template-columns: 1fr; }
+}
+
+/* ---------- Admin: Tahrirlash / O'chirish tugmalari qatori ---------- */
+.compact-item__manage {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+/* ---------- Reyting sahifasi: filtrlar grid ---------- */
+.rating-filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+@media (max-width: 900px) {
+  .rating-filters { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 520px) {
+  .rating-filters { grid-template-columns: 1fr; }
+}
+
+/* ---------- Telefon uchun pastki navigatsiya (bottom nav) ---------- */
+.bottom-nav {
+  display: none;
+}
+.bottom-nav__item {
+  text-decoration: none;
 }
