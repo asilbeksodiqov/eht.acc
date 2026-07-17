@@ -13,10 +13,6 @@
   const historyList = document.getElementById('historyList');
   const historyDateFilter = document.getElementById('historyDateFilter');
   const resubmitFileInput = document.getElementById('resubmitFileInput');
-  const rankingList = document.getElementById('rankingList');
-  const rankingOpenBtn = document.getElementById('rankingOpenBtn');
-  const rankingModal = document.getElementById('rankingModal');
-  const rankingCloseBtn = document.getElementById('rankingCloseBtn');
   const videoTelegramField = document.getElementById('videoTelegramField');
   const videoTelegramCheck = document.getElementById('videoTelegramCheck');
 
@@ -56,7 +52,6 @@
     historyDateFilter.value = todayStr_();
     loadDocTypes();
     loadHistory();
-    loadRanking();
   }
 
   function todayStr_() {
@@ -66,16 +61,6 @@
     const dd = String(d.getDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
   }
-
-  // Reyting — yuqoridagi kichik tugma bosilganda modal oynada ochiladi
-  rankingOpenBtn.addEventListener('click', () => {
-    rankingModal.classList.add('show');
-    loadRanking();
-  });
-  rankingCloseBtn.addEventListener('click', () => rankingModal.classList.remove('show'));
-  rankingModal.addEventListener('click', (e) => {
-    if (e.target === rankingModal) rankingModal.classList.remove('show');
-  });
 
   async function loadDocTypes() {
     const res = await apiGet('getDocTypes');
@@ -181,7 +166,6 @@
     submitBtn.textContent = 'Yuborish';
 
     loadHistory();
-    loadRanking();
   });
 
   historyDateFilter.addEventListener('change', loadHistory);
@@ -262,7 +246,6 @@
         }
       } else {
         loadHistory();
-        loadRanking();
       }
     } catch (err) {
       alert("Yuborib bo'lmadi. Internetni tekshiring va qayta urinib ko'ring");
@@ -272,24 +255,6 @@
       }
     }
   });
-
-  async function loadRanking() {
-    const res = await apiGet('getRanking');
-    if (!res.success || !res.ranking.length) {
-      rankingList.innerHTML = `<div class="empty-state"><div class="empty-state__desc">Ma'lumot yo'q</div></div>`;
-      return;
-    }
-    rankingList.innerHTML = res.ranking.map((r, idx) => {
-      const isSelf = r.branch === session.branch;
-      const isTop = idx === 0 && r.errorCount > 0;
-      return `
-        <div class="ranking-item ${isTop ? 'is-top' : ''} ${isSelf ? 'is-self' : ''}">
-          <div class="ranking-item__rank">${idx + 1}</div>
-          <div class="ranking-item__name">${escapeHtml(r.branch)}${isSelf ? ' (siz)' : ''}</div>
-          <div class="ranking-item__count">${r.errorCount} ta xato</div>
-        </div>`;
-    }).join('');
-  }
 
   function renderHistoryItem(item) {
     const meta = statusMeta(item.status);
