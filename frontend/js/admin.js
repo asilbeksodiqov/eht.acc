@@ -15,10 +15,22 @@
   const missingToggle = document.getElementById('missingToggle');
   const missingBody = document.getElementById('missingBody');
   const missingChevron = document.getElementById('missingChevron');
-  const rankingList = document.getElementById('rankingList');
-  const rankingOpenBtn = document.getElementById('rankingOpenBtn');
-  const rankingModal = document.getElementById('rankingModal');
-  const rankingCloseBtn = document.getElementById('rankingCloseBtn');
+
+  const editModal = document.getElementById('editModal');
+  const editCloseBtn = document.getElementById('editCloseBtn');
+  const editCancelBtn = document.getElementById('editCancelBtn');
+  const editSaveBtn = document.getElementById('editSaveBtn');
+  const editAlert = document.getElementById('editAlert');
+  const editDocType = document.getElementById('editDocType');
+  const editUploadDate = document.getElementById('editUploadDate');
+  const editVideoTelegram = document.getElementById('editVideoTelegram');
+
+  const deleteModal = document.getElementById('deleteModal');
+  const deleteCancelBtn = document.getElementById('deleteCancelBtn');
+  const deleteConfirmBtn = document.getElementById('deleteConfirmBtn');
+
+  let editTargetId = null;
+  let deleteTargetId = null;
 
   // "Yuborilmaganlar" oynasi standart holatda yopiq — sarlavha bosilganda
   // dropdown kabi ochiladi/yopiladi
@@ -28,14 +40,87 @@
     missingToggle.setAttribute('aria-expanded', String(isOpen));
   });
 
-  // Reyting — yuqoridagi kichik tugma bosilganda modal oynada ochiladi
-  rankingOpenBtn.addEventListener('click', () => {
-    rankingModal.classList.add('show');
-    loadRanking();
+  // ---------- Tahrirlash oynasi ----------
+  function closeEditModal() {
+    editModal.classList.remove('show');
+    hideAlert(editAlert);
+    editTargetId = null;
+  }
+  editCloseBtn.addEventListener('click', closeEditModal);
+  editCancelBtn.addEventListener('click', closeEditModal);
+  editModal.addEventListener('click', (e) => { if (e.target === editModal) closeEditModal(); });
+
+  function openEditModal(item) {
+    editTargetId = item.submissionId;
+    hideAlert(editAlert);
+    editDocType.innerHTML = '';
+    allDocTypeNames.forEach(name => editDocType.appendChild(makeOption(name, name)));
+    editDocType.value = item.docType;
+    editUploadDate.value = item.uploadDate || '';
+    editVideoTelegram.checked = !!item.videoTelegram;
+    editModal.classList.add('show');
+  }
+
+  editSaveBtn.addEventListener('click', async () => {
+    if (!editTargetId) return;
+    if (!editDocType.value || !editUploadDate.value) {
+      showAlert(editAlert, "Hujjat turi va sanani to'ldiring");
+      return;
+    }
+    editSaveBtn.disabled = true;
+    editSaveBtn.innerHTML = '<span class="spinner spinner-dark"></span>';
+
+    const res = await apiPost('editSubmission', {
+      submissionId: editTargetId,
+      docType: editDocType.value,
+      uploadDate: editUploadDate.value,
+      videoTelegram: editVideoTelegram.checked
+    });
+
+    editSaveBtn.disabled = false;
+    editSaveBtn.textContent = 'Saqlash';
+
+    if (!res.success) {
+      showAlert(editAlert, res.message || 'Saqlashda xatolik yuz berdi');
+      return;
+    }
+
+    closeEditModal();
+    runSearch();
+    loadMissingToday();
   });
-  rankingCloseBtn.addEventListener('click', () => rankingModal.classList.remove('show'));
-  rankingModal.addEventListener('click', (e) => {
-    if (e.target === rankingModal) rankingModal.classList.remove('show');
+
+  // ---------- O'chirishni tasdiqlash oynasi ----------
+  function closeDeleteModal() {
+    deleteModal.classList.remove('show');
+    deleteTargetId = null;
+  }
+  deleteCancelBtn.addEventListener('click', closeDeleteModal);
+  deleteModal.addEventListener('click', (e) => { if (e.target === deleteModal) closeDeleteModal(); });
+
+  function openDeleteModal(submissionId) {
+    deleteTargetId = submissionId;
+    deleteModal.classList.add('show');
+  }
+
+  deleteConfirmBtn.addEventListener('click', async () => {
+    if (!deleteTargetId) return;
+    deleteConfirmBtn.disabled = true;
+    deleteConfirmBtn.innerHTML = '<span class="spinner"></span>';
+
+    const res = await apiPost('deleteSubmission', { submissionId: deleteTargetId });
+
+    deleteConfirmBtn.disabled = false;
+    deleteConfirmBtn.textContent = 'Ha, o\'chirish';
+
+    if (!res.success) {
+      alert(res.message || "O'chirishda xatolik yuz berdi");
+      return;
+    }
+
+    closeDeleteModal();
+    runSearch();
+    loadMissingToday();
   });
 
   let allDocTypeNames = [];
@@ -67,7 +152,6 @@
     }
 
     loadMissingToday();
-    loadRanking();
   }
 
   function makeOption(value, text) {
@@ -115,24 +199,6 @@
         <span class="missing-item__doctype">${escapeHtml(i.docType)}</span>
       </div>
     `).join('');
-  }
-
-  // ---------- Reyting ----------
-  async function loadRanking() {
-    const res = await apiGet('getRanking');
-    if (!res.success || !res.ranking.length) {
-      rankingList.innerHTML = `<div class="empty-state"><div class="empty-state__desc">Ma'lumot yo'q</div></div>`;
-      return;
-    }
-    rankingList.innerHTML = res.ranking.map((r, idx) => {
-      const isTop = idx === 0 && r.errorCount > 0;
-      return `
-        <div class="ranking-item ${isTop ? 'is-top' : ''}">
-          <div class="ranking-item__rank">${idx + 1}</div>
-          <div class="ranking-item__name">${escapeHtml(r.branch)}</div>
-          <div class="ranking-item__count">${r.errorCount} ta xato</div>
-        </div>`;
-    }).join('');
   }
 
   // ---------- Qidiruv ----------
@@ -235,6 +301,11 @@
               <button class="btn btn-danger btn-sm" data-action="confirm-return" data-id="${escapeHtml(item.submissionId)}">Qaytarishni yakunlash</button>
             </div>
           ` : ''}
+
+          <div class="compact-item__manage">
+            <button class="btn btn-ghost btn-sm" data-action="edit" data-id="${escapeHtml(item.submissionId)}">✏️ Tahrirlash</button>
+            <button class="btn btn-danger btn-sm" data-action="delete" data-id="${escapeHtml(item.submissionId)}">🗑️ O'chirish</button>
+          </div>
         </div>
       </div>`;
   }
@@ -279,6 +350,17 @@
     const returnBtn = card.querySelector('[data-action="return"]');
     const confirmApproveBtn = card.querySelector('[data-action="confirm-approve"]');
     const confirmReturnBtn = card.querySelector('[data-action="confirm-return"]');
+    const editBtn = card.querySelector('[data-action="edit"]');
+    const deleteBtn = card.querySelector('[data-action="delete"]');
+
+    if (editBtn) editBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openEditModal(item);
+    });
+    if (deleteBtn) deleteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openDeleteModal(id);
+    });
 
     if (cleanBtn) cleanBtn.addEventListener('click', () => sendAdminAction(id, 'approve', '', '', cleanBtn));
     if (noteBtn) noteBtn.addEventListener('click', () => {
@@ -321,6 +403,5 @@
 
     runSearch();
     loadMissingToday();
-    loadRanking();
   }
 })();
