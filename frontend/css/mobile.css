@@ -1,0 +1,157 @@
+/* ============================================
+   EHTIROM WORKFLOW — Telefon (mobile) uchun uslublar
+   ============================================
+   Bu fayl faqat style.css'dan KEYIN ulanadi va uni to'ldiradi —
+   asosiy dizayn tizimini (ranglar, shriftlar) o'zgartirmaydi, faqat
+   kichik ekranlar uchun joylashuv va o'lchamlarni moslashtiradi.
+*/
+
+@media (max-width: 720px) {
+
+  /* ---------- Umumiy joylashuv ---------- */
+  .topbar {
+    padding: 12px 16px;
+  }
+  .topbar__title {
+    font-size: 15px;
+  }
+  .topbar__subtitle {
+    font-size: 11px;
+  }
+  .topbar__mark {
+    width: 30px;
+    height: 30px;
+    font-size: 13px;
+  }
+  .topbar__right {
+    gap: 8px;
+  }
+
+  /* Yuqoridagi "Reyting" tugmasi endi pastki navbar orqali ochiladi —
+     telefon ekranida joy tejash uchun yuqoridan yashiramiz. */
+  .rank-launcher {
+    display: none;
+  }
+
+  .page {
+    padding: 18px 14px 96px;
+  }
+  .page-head h1 {
+    font-size: 20px;
+  }
+
+  .card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  /* ---------- Formalar va filtrlar ---------- */
+  .search-grid,
+  .missing-filters,
+  .rating-filters {
+    grid-template-columns: 1fr;
+  }
+  .field-row {
+    grid-template-columns: 1fr;
+  }
+
+  /* ---------- Natija kartalari va amallar ---------- */
+  .result-card__actions,
+  .compact-item__manage {
+    flex-direction: column;
+  }
+  .result-card__actions .btn,
+  .compact-item__manage .btn {
+    width: 100%;
+  }
+
+  .compact-item__head {
+    padding: 12px 14px;
+  }
+  .compact-item__body {
+    padding: 4px 14px 14px;
+  }
+
+  /* ---------- Filial tarixi ro'yxati ---------- */
+  .history-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .history-item__actions {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  /* ---------- Reyting ro'yxati ---------- */
+  .ranking-item__name {
+    font-size: 13px;
+  }
+
+  /* ---------- Modal oynalar ---------- */
+  .modal {
+    max-width: 100%;
+    padding: 20px;
+  }
+  .modal--wide {
+    max-width: 100%;
+  }
+
+  /* ---------- Login sahifasi ---------- */
+  .login-card {
+    padding: 28px 22px;
+  }
+
+  /* ---------- Pastki navigatsiya (bottom navbar) ---------- */
+  body {
+    /* Pastki navbar tagida qolib ketmasligi uchun bo'sh joy */
+    padding-bottom: 0;
+  }
+
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -6px 20px -12px rgba(20, 33, 58, 0.18);
+    z-index: 60;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  .bottom-nav__item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 9px 0 7px;
+    color: var(--ink-faint);
+    font-size: 11px;
+    font-weight: 700;
+    transition: color 0.15s ease;
+  }
+  .bottom-nav__icon {
+    font-size: 19px;
+    line-height: 1;
+  }
+  .bottom-nav__label {
+    line-height: 1;
+  }
+  .bottom-nav__item.is-active {
+    color: var(--accent-ink);
+  }
+}
+
+/* Kattaroq ekranlarda pastki navbar ko'rinmaydi — reyting tugmasi
+   yuqoridagi topbar orqali ochiladi (style.css'dagi .rank-launcher). */
+@media (min-width: 721px) {
+  .bottom-nav {
+    display: none !important;
+  }
+}
