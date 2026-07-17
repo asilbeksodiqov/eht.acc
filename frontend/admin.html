@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/mobile.css">
 </head>
 <body>
 
@@ -19,7 +20,7 @@
     </div>
   </div>
   <div class="topbar__right">
-    <button type="button" class="rank-launcher" id="rankingOpenBtn">🏆 Reyting</button>
+    <a href="rating.html" class="rank-launcher">🏆 Reyting</a>
     <span class="badge-role">Admin</span>
     <button class="btn-logout" onclick="logout()">Chiqish</button>
   </div>
@@ -105,19 +106,60 @@
 
 </main>
 
-<!-- Reyting oynasi (modal) -->
-<div class="modal-overlay" id="rankingModal">
-  <div class="modal modal--wide">
-    <button type="button" class="modal__close" id="rankingCloseBtn">✕</button>
-    <h3 class="modal__title">Filiallar reytingi</h3>
-    <p class="modal__desc" style="margin-bottom:14px;">Xatolar soni bo'yicha (ko'pdan kamga)</p>
-    <div class="modal__body-scroll">
-      <div id="rankingList">
-        <div class="empty-state"><div class="empty-state__title">Yuklanmoqda...</div></div>
-      </div>
+<!-- Hujjatni tahrirlash oynasi -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <button type="button" class="modal__close" id="editCloseBtn">✕</button>
+    <h3 class="modal__title">Hujjatni tahrirlash</h3>
+    <p class="modal__desc" style="margin-bottom:16px;">Hujjat turi, yuborilgan sana va Video Telegram holatini o'zgartirishingiz mumkin.</p>
+
+    <div id="editAlert" class="alert alert-error"></div>
+
+    <div class="field">
+      <label for="editDocType">Hujjat turi</label>
+      <select id="editDocType"></select>
+    </div>
+    <div class="field">
+      <label for="editUploadDate">Yuborilgan sana</label>
+      <input type="date" id="editUploadDate">
+    </div>
+    <div class="field" style="margin-bottom:6px;">
+      <label style="display:flex; align-items:center; gap:8px; font-weight:500;">
+        <input type="checkbox" id="editVideoTelegram" style="width:auto;">
+        Video Telegram orqali jo'natilgan
+      </label>
+    </div>
+
+    <div class="modal__actions">
+      <button type="button" class="btn btn-ghost" id="editCancelBtn">Bekor qilish</button>
+      <button type="button" class="btn btn-accent" id="editSaveBtn">Saqlash</button>
     </div>
   </div>
 </div>
+
+<!-- Hujjatni o'chirishni tasdiqlash oynasi -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <h3 class="modal__title">Hujjatni o'chirish</h3>
+    <p class="modal__desc">Bu amalni ortga qaytarib bo'lmaydi — hisobot Google Sheets'dan to'liq o'chiriladi. Davom etasizmi?</p>
+    <div class="modal__actions">
+      <button type="button" class="btn btn-ghost" id="deleteCancelBtn">Bekor qilish</button>
+      <button type="button" class="btn btn-danger" id="deleteConfirmBtn">Ha, o'chirish</button>
+    </div>
+  </div>
+</div>
+
+<!-- Telefon uchun pastki navigatsiya -->
+<nav class="bottom-nav">
+  <a href="admin.html" class="bottom-nav__item is-active">
+    <span class="bottom-nav__icon">🏠</span>
+    <span class="bottom-nav__label">Bosh sahifa</span>
+  </a>
+  <a href="rating.html" class="bottom-nav__item">
+    <span class="bottom-nav__icon">🏆</span>
+    <span class="bottom-nav__label">Reyting</span>
+  </a>
+</nav>
 
 <script src="js/config.js"></script>
 <script src="js/api.js"></script>
