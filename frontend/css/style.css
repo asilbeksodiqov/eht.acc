@@ -654,6 +654,13 @@ button, input, select, textarea {
   transition: width 0.2s ease;
   z-index: 0;
 }
+.btn-progress__fill.is-indeterminate {
+  animation: btn-progress-pulse 1.1s ease-in-out infinite;
+}
+@keyframes btn-progress-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.9; }
+}
 .btn-progress__label {
   position: relative;
   z-index: 1;
