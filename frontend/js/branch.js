@@ -34,9 +34,12 @@
     if (e.target === todayStatusModal) closeTodayStatusModal();
   });
 
-  // Tugma ustidagi progress-bar holatini yangilaydi (0-100 foiz).
-  function setSubmitProgress(percent, label) {
-    submitBtnFill.style.width = percent + '%';
+  // Tugma ustidagi holatni yangilaydi. `active`=true bo'lsa "Yuborilmoqda..."
+  // animatsiyasi ko'rsatiladi (aniq foiz endi kuzatilmaydi), false bo'lsa
+  // boshlang'ich holatga qaytadi.
+  function setSubmitProgress(active, label) {
+    submitBtnFill.style.width = active ? '100%' : '0%';
+    submitBtnFill.classList.toggle('is-indeterminate', !!active);
     submitBtnLabel.textContent = label;
   }
 
@@ -186,7 +189,7 @@
     }
 
     submitBtn.disabled = true;
-    setSubmitProgress(0, '0%');
+    setSubmitProgress(true, 'Yuborilmoqda...');
     uploadNotice.classList.add('show');
 
     try {
@@ -196,17 +199,12 @@
       // FilePath'i ko'rsatgan bitta papkaga joylanadi.
       const filesPayload = await filesToPayload(files);
 
-      // Progress-bar foizi haqiqiy yuborish tezligi/vaqtiga qarab
-      // harakat qiladi (XMLHttpRequest'ning upload.onprogress hodisasi
-      // orqali) — sun'iy/animatsion emas.
       const res = await apiPostWithProgress('submitDocument', {
         branch: session.branch,
         docType,
         files: filesPayload,
         videoSentViaTelegram: videoTelegramField.style.display !== 'none' && videoTelegramCheck.checked
-      }, (pct) => setSubmitProgress(pct, pct + '%'));
-
-      setSubmitProgress(100, '100%');
+      }, (active) => setSubmitProgress(active, active ? 'Yuborilmoqda...' : 'Yuborish'));
 
       if (res.success) {
         submitForm.reset();
@@ -222,7 +220,7 @@
 
     uploadNotice.classList.remove('show');
     submitBtn.disabled = false;
-    setSubmitProgress(0, 'Yuborish');
+    setSubmitProgress(false, 'Yuborish');
 
     loadHistory();
   });
