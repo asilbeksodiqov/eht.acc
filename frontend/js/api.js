@@ -1,350 +1,184 @@
-(function () {
-  const session = requireAuth('branch');
-  if (!session) return;
+/**
+ * Apps Script backend bilan aloqa uchun yordamchi funksiyalar.
+ * MUHIM: fetch so'rovlarida Content-Type header'i ATAYLAB qo'yilmaydi
+ * (CORS preflight so'rovining oldini olish uchun — Apps Script buni
+ * to'g'ri boshqara olmaydi). Body matn (text/plain) sifatida ketadi,
+ * backend tomonda JSON.parse() bilan o'qiladi.
+ */
 
-  document.getElementById('branchLabel').textContent = session.branch;
-
-  const docTypeSelect = document.getElementById('docType');
-  const fileInput = document.getElementById('fileInput');
-  const fileNameLabel = document.getElementById('fileNameLabel');
-  const submitForm = document.getElementById('submitForm');
-  const submitBtn = document.getElementById('submitBtn');
-  const submitAlert = document.getElementById('submitAlert');
-  const historyList = document.getElementById('historyList');
-  const historyDateFilter = document.getElementById('historyDateFilter');
-  const resubmitFileInput = document.getElementById('resubmitFileInput');
-  const videoTelegramField = document.getElementById('videoTelegramField');
-  const videoTelegramCheck = document.getElementById('videoTelegramCheck');
-  const submitBtnFill = document.getElementById('submitBtnFill');
-  const submitBtnLabel = document.getElementById('submitBtnLabel');
-  const uploadNotice = document.getElementById('uploadNotice');
-  const todayStatusModal = document.getElementById('todayStatusModal');
-  const todayStatusTitle = document.getElementById('todayStatusTitle');
-  const todayStatusBody = document.getElementById('todayStatusBody');
-  const todayStatusCloseBtn = document.getElementById('todayStatusCloseBtn');
-
-  let resubmitTargetId = null;
-  let docTypesData = [];
-
-  function closeTodayStatusModal() {
-    todayStatusModal.classList.remove('show');
-  }
-  todayStatusCloseBtn.addEventListener('click', closeTodayStatusModal);
-  todayStatusModal.addEventListener('click', (e) => {
-    if (e.target === todayStatusModal) closeTodayStatusModal();
-  });
-
-  // Tugma ustidagi holatni yangilaydi. `active`=true bo'lsa "Yuborilmoqda..."
-  // animatsiyasi ko'rsatiladi (aniq foiz endi kuzatilmaydi), false bo'lsa
-  // boshlang'ich holatga qaytadi.
-  function setSubmitProgress(active, label) {
-    submitBtnFill.style.width = active ? '100%' : '0%';
-    submitBtnFill.classList.toggle('is-indeterminate', !!active);
-    submitBtnLabel.textContent = label;
-  }
-
-  // Faqat shu nomdagi hujjat turi uchun kunlik soat oynasi (frontend
-  // tomonda tekshiriladi). Kerak bo'lsa shu ro'yxatga boshqa hujjat
-  // turlarini ham xuddi shunday qo'shish mumkin.
-  const HOURLY_WINDOW_DOC_TYPES = {
-    'Касса хужжатлари': { startHour: 7, endHour: 10 }
-  };
-
-  // Berilgan hujjat turi uchun hozir soat oynasi ochiqmi (agar shu turga
-  // cheklov belgilangan bo'lsa). Cheklov yo'q turlar uchun har doim true.
-  function isHourWindowOpen_(docTypeName) {
-    const win = HOURLY_WINDOW_DOC_TYPES[docTypeName];
-    if (!win) return true;
-    const now = new Date();
-    const nowInMinutes = now.getHours() * 60 + now.getMinutes();
-    return nowInMinutes >= win.startHour * 60 && nowInMinutes < win.endHour * 60;
-  }
-
-  function hourWindowLabel_(docTypeName) {
-    const win = HOURLY_WINDOW_DOC_TYPES[docTypeName];
-    if (!win) return '';
-    const fmt = h => String(h).padStart(2, '0') + ':00';
-    return `soat ${fmt(win.startHour)} dan ${fmt(win.endHour)} gacha`;
-  }
-
-  init();
-
-  async function init() {
-    // Standart holatda faqat BUGUNGI hujjatlar ko'rsatiladi — boshqa
-    // sanadagi hujjatlarni ko'rish uchun filial "Sana bo'yicha filtr"
-    // maydonidan foydalanadi (yoki uni tozalab, hammasini ko'rishi mumkin).
-    historyDateFilter.value = todayStr_();
-    loadDocTypes();
-    loadHistory();
-    showTodayStatusModal();
-  }
-
-  // Filial panelga kirganda chiqadigan qisqa ogohlantirish oynasi:
-  // bugun dam kuni bo'lsa — yoqimli hordiq xabari; ish kuni bo'lsa —
-  // bugun hali yubormagan (faqat HAR KUNI MAJBURIY, ya'ni DocType
-  // listida Period=1 bo'lgan) hujjat turlari ro'yxati (agar hammasi
-  // yuborilgan bo'lsa — tabrik xabari). Oyna avtomatik yopilmaydi —
-  // foydalanuvchi "✕" tugmasi yoki fondan tashqariga bosish orqali
-  // o'zi yopadi.
-  async function showTodayStatusModal() {
-    const res = await apiGet('getTodayMissing', { branch: session.branch });
-    if (!res.success) return;
-
-    if (res.isWeekend) {
-      todayStatusTitle.textContent = 'Dam kuni 🌿';
-      todayStatusBody.innerHTML = `<p class="modal__desc" style="margin-bottom:0;">Bugun dam kuni — hujjat talab qilinmaydi. Dam kunlari yoqimli hordiq tilaymiz!</p>`;
-    } else if (res.items && res.items.length) {
-      todayStatusTitle.textContent = "Bugun hali yubormagan hujjatlaringiz";
-      todayStatusBody.innerHTML = `
-        <p class="modal__desc">Quyidagi hujjat turlarini hali yubormadingiz:</p>
-        <ul style="margin:0 0 4px; padding-left:18px; font-size:13.5px; color:var(--ink-soft); line-height:1.7;">
-          ${res.items.map(i => `<li>${escapeHtml(i.docType)}</li>`).join('')}
-        </ul>`;
-    } else {
-      todayStatusTitle.textContent = 'Ajoyib! ✅';
-      todayStatusBody.innerHTML = `<p class="modal__desc" style="margin-bottom:0;">Bugungi barcha hujjatlaringiz yuborilgan.</p>`;
-    }
-
-    todayStatusModal.classList.add('show');
-  }
-
-  function todayStr_() {
-    const d = new Date();
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-  }
-
-  async function loadDocTypes() {
-    const res = await apiGet('getDocTypes');
-    if (!res.success) return;
-    docTypesData = res.docTypes;
-    docTypesData.forEach(dt => {
-      const opt = document.createElement('option');
-      opt.value = dt.name;
-      let label = dt.name;
-      if (Number(dt.period) > 1) label += ' (davriy)';
-      if (!dt.isOpenToday) {
-        label += ' — bugun dam kuni, yopiq';
-        opt.disabled = true;
-      } else if (!isHourWindowOpen_(dt.name)) {
-        label += ` — hozir yopiq (${hourWindowLabel_(dt.name)} ochiq)`;
-        opt.disabled = true;
-      }
-      opt.textContent = label;
-      docTypeSelect.appendChild(opt);
+async function apiPost(action, data = {}) {
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action, ...data })
     });
+    return await res.json();
+  } catch (err) {
+    return { success: false, message: "Serverga ulanib bo'lmadi. Internetni yoki API_URL sozlamasini tekshiring." };
   }
+}
 
-  // byWho=2 (kassir) bo'lgan hujjat turlari tanlanganda, "Video Telegram
-  // orqali jo'natildi" degan ixtiyoriy checkbox ko'rsatiladi. Belgilash
-  // majburiy emas — filial xohlasa belgilaydi, xohlamasa bo'sh qoldiradi.
-  docTypeSelect.addEventListener('change', () => {
-    const selected = docTypesData.find(dt => dt.name === docTypeSelect.value);
-    const showCheckbox = !!selected && Number(selected.byWho) === 2;
-    videoTelegramField.style.display = showCheckbox ? '' : 'none';
-    if (!showCheckbox) videoTelegramCheck.checked = false;
-  });
-
-  // Video fayl tanlanganligini tekshiradi — video yuborish taqiqlangan.
-  function hasVideoFile_(fileList) {
-    return Array.from(fileList).some(f => String(f.type || '').toLowerCase().indexOf('video/') === 0);
-  }
-
-  fileInput.addEventListener('change', () => {
-    const files = fileInput.files;
-    if (hasVideoFile_(files)) {
-      alert('Video fayl yuborish mumkin emas. Faqat hujjat yoki rasm tanlang.');
-      fileInput.value = '';
-      fileNameLabel.textContent = '';
-      return;
-    }
-    if (!files.length) {
-      fileNameLabel.textContent = '';
-    } else if (files.length === 1) {
-      fileNameLabel.textContent = files[0].name;
-    } else {
-      fileNameLabel.textContent = `${files.length} ta fayl tanlandi: ` + Array.from(files).map(f => f.name).join(', ');
-    }
-  });
-
-  submitForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    hideAlert(submitAlert);
-
-    const docType = docTypeSelect.value;
-    const files = fileInput.files;
-    if (!docType || !files.length) {
-      showAlert(submitAlert, 'Hujjat turini tanlang va kamida bitta fayl yuklang');
-      return;
-    }
-    if (!isHourWindowOpen_(docType)) {
-      showAlert(submitAlert, `"${docType}" hujjatini faqat ${hourWindowLabel_(docType)} yuborish mumkin`);
-      return;
-    }
-    if (hasVideoFile_(files)) {
-      showAlert(submitAlert, 'Video fayl yuborish mumkin emas. Faqat hujjat yoki rasm tanlang.');
-      return;
-    }
-
-    submitBtn.disabled = true;
-    setSubmitProgress(true, 'Yuborilmoqda...');
-    uploadNotice.classList.add('show');
-
-    try {
-      // Bir nechta fayl tanlangan bo'lsa ham, hammasi BITTA so'rov bilan
-      // yuboriladi — natijada Report listida faqat BITTA qator (bitta
-      // SubmissionID) hosil bo'ladi, fayllar esa shu qatorning
-      // FilePath'i ko'rsatgan bitta papkaga joylanadi.
-      const filesPayload = await filesToPayload(files);
-
-      const res = await apiPostWithProgress('submitDocument', {
-        branch: session.branch,
-        docType,
-        files: filesPayload,
-        videoSentViaTelegram: videoTelegramField.style.display !== 'none' && videoTelegramCheck.checked
-      }, (active) => setSubmitProgress(active, active ? 'Yuborilmoqda...' : 'Yuborish'));
-
-      if (res.success) {
-        submitForm.reset();
-        fileNameLabel.textContent = '';
-        videoTelegramField.style.display = 'none';
-        showAlert(submitAlert, 'Hujjat muvaffaqiyatli yuborildi', 'success');
-      } else {
-        showAlert(submitAlert, res.message || 'Yuborishda xatolik yuz berdi');
-      }
-    } catch (err) {
-      showAlert(submitAlert, "Yuborib bo'lmadi. Internetni tekshiring va qayta urinib ko'ring");
-    }
-
-    uploadNotice.classList.remove('show');
-    submitBtn.disabled = false;
-    setSubmitProgress(false, 'Yuborish');
-
-    loadHistory();
-  });
-
-  historyDateFilter.addEventListener('change', loadHistory);
-
-  async function loadHistory() {
-    const params = { branch: session.branch };
-    if (historyDateFilter.value) params.date = historyDateFilter.value;
-
-    const res = await apiGet('getMyHistory', params);
-    if (!res.success || !res.items.length) {
-      historyList.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-state__icon">🗂️</div>
-          <div class="empty-state__title">Hozircha hujjat yo'q</div>
-          <div class="empty-state__desc">Yuborilgan hujjatlaringiz shu yerda ko'rinadi</div>
-        </div>`;
-      return;
-    }
-
-    historyList.innerHTML = res.items.map(renderHistoryItem).join('');
-
-    document.querySelectorAll('[data-resubmit]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        resubmitTargetId = btn.getAttribute('data-resubmit');
-        resubmitFileInput.value = '';
-        resubmitFileInput.click();
-      });
+// MUHIM: avval bu funksiya XMLHttpRequest orqali ishlagan (haqiqiy
+// yuklash foizini ko'rsatish uchun), lekin Apps Script'ning /exec
+// manzili katta POST so'rovlarda (fayl + Base64) berayotgan javobni XHR
+// boshqacha qayta ishlaganidan, brauzer buni CORS xatosi sifatida
+// bloklardi (garchi oddiy fetch() orqali xuddi shu URL'ga POST so'rovlar
+// muammosiz o'tsa ham). Shu sababli endi bu funksiya ham boshqa hamma
+// joyda ishlatiladigan fetch()ga o'tkazildi — haqiqiy foiz endi
+// ko'rsatilmaydi, faqat so'rov davomida chaqiruvchi tomon "Yuborilmoqda..."
+// kabi indikator ko'rsatishi uchun onProgress(true/false) chaqiriladi.
+async function apiPostWithProgress(action, data = {}, onProgress) {
+  try {
+    if (typeof onProgress === 'function') onProgress(true);
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action, ...data })
     });
-
-    document.querySelectorAll('[data-ack]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const submissionId = btn.getAttribute('data-ack');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner spinner-dark"></span>';
-        const res = await apiPost('ackComment', { submissionId, branch: session.branch });
-        if (!res.success) {
-          alert(res.message || 'Amalni bajarishda xatolik yuz berdi');
-          btn.disabled = false;
-          btn.textContent = 'Tushunarli';
-          return;
-        }
-        loadHistory();
-      });
-    });
+    return await res.json();
+  } catch (err) {
+    return { success: false, message: "Serverga ulanib bo'lmadi. Internetni yoki API_URL sozlamasini tekshiring." };
+  } finally {
+    if (typeof onProgress === 'function') onProgress(false);
   }
+}
 
-  resubmitFileInput.addEventListener('change', async () => {
-    const files = resubmitFileInput.files;
-    if (!files.length || !resubmitTargetId) return;
-    if (hasVideoFile_(files)) {
-      alert('Video fayl yuborish mumkin emas. Faqat hujjat yoki rasm tanlang.');
-      resubmitFileInput.value = '';
-      return;
-    }
+async function apiGet(action, params = {}) {
+  try {
+    const query = new URLSearchParams({ action, ...params }).toString();
+    const res = await fetch(`${API_URL}?${query}`);
+    return await res.json();
+  } catch (err) {
+    return { success: false, message: "Serverga ulanib bo'lmadi. Internetni yoki API_URL sozlamasini tekshiring." };
+  }
+}
 
-    const btn = document.querySelector(`[data-resubmit="${resubmitTargetId}"]`);
-    const originalText = btn ? btn.textContent : '';
-    // "Qayta yuborish" tugmasi och (ghost) fonli bo'lgani uchun, standart
-    // oq spinner unda ko'rinmay, tugma "bo'sh" bo'lib qolganday tuyulardi —
-    // shu sababli shu yerda to'q rangli (.spinner-dark) variant ishlatiladi.
-    if (btn) {
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spinner spinner-dark"></span>';
-    }
-
-    try {
-      const filesPayload = await filesToPayload(files);
-      const res = await apiPost('resubmitDocument', {
-        submissionId: resubmitTargetId,
-        files: filesPayload
-      });
-
-      if (!res.success) {
-        alert(res.message || 'Yuborishda xatolik yuz berdi');
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = originalText;
-        }
-      } else {
-        loadHistory();
-      }
-    } catch (err) {
-      alert("Yuborib bo'lmadi. Internetni tekshiring va qayta urinib ko'ring");
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = originalText;
-      }
-    }
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
   });
+}
 
-  function renderHistoryItem(item) {
-    const meta = statusMeta(item.status);
-    const canResubmit = item.status === 'Qaytarildi' || item.status === 'Yuborilmadi';
-    const resubmitLabel = item.status === 'Yuborilmadi' ? 'Yuborish' : 'Qayta yuborish';
-    const note = ((item.status === 'Qaytarildi' || item.status === 'Almashtirildi') && (item.errorType || item.comment))
-      ? `<div class="history-item__note"><strong>${escapeHtml(item.errorType || 'Izoh')}:</strong> ${escapeHtml(item.comment || '')}</div>`
-      : '';
-
-    // Admin izoh bilan tasdiqlagan hujjatlar uchun "Tushunarli" tugmasi —
-    // bosilgach admin panelida "filial o'qidi" belgisi chiqadi.
-    const hasApprovedComment = item.status === 'Tasdiqlandi' && (item.errorType || item.comment);
-    let ackBlock = '';
-    if (hasApprovedComment) {
-      ackBlock = `<div class="history-item__note"><strong>${escapeHtml(item.errorType || 'Izoh')}:</strong> ${escapeHtml(item.comment || '')}</div>`;
-      ackBlock += item.ackRead
-        ? `<div class="ack-badge">✅ Tushunarli deb belgilandi</div>`
-        : `<button class="btn btn-ghost btn-sm ack-btn" data-ack="${escapeHtml(item.submissionId)}">Tushunarli</button>`;
-    }
-
-    return `
-      <div class="history-item">
-        <div class="history-item__main">
-          <div class="history-item__title">${escapeHtml(item.docType)}</div>
-          <div class="history-item__meta">${escapeHtml(item.uploadDate)}${item.uploadTime ? ' · ' + escapeHtml(item.uploadTime) : ''} · Versiya ${escapeHtml(String(item.version))} · ID: ${escapeHtml(item.submissionId)}</div>
-          ${renderStepper(item.status)}
-          ${note}
-          ${ackBlock}
-        </div>
-        <div class="history-item__actions">
-          <span class="status-pill ${meta.cls}">${meta.label}</span>
-          ${canResubmit ? `<button class="btn btn-ghost btn-sm" data-resubmit="${escapeHtml(item.submissionId)}">${resubmitLabel}</button>` : ''}
-        </div>
-      </div>`;
+// Bir nechta faylni backend'ga yuborish uchun kerakli formatga
+// ([{fileName, mimeType, fileBase64}, ...]) o'giradi.
+async function filesToPayload(fileList) {
+  const files = Array.from(fileList);
+  const payload = [];
+  for (const file of files) {
+    const fileBase64 = await fileToBase64(file);
+    payload.push({ fileName: file.name, mimeType: file.type, fileBase64 });
   }
-})();
+  return payload;
+}
+
+// ---------- Sessiya (localStorage) ----------
+
+function getSession() {
+  const raw = localStorage.getItem('ehtirom_session');
+  return raw ? JSON.parse(raw) : null;
+}
+
+function setSession(data) {
+  localStorage.setItem('ehtirom_session', JSON.stringify(data));
+}
+
+function clearSession() {
+  localStorage.removeItem('ehtirom_session');
+}
+
+// Sahifani himoya qiladi: kerakli role bo'lmasa login sahifasiga qaytaradi
+function requireAuth(role) {
+  const session = getSession();
+  if (!session || !session.role) {
+    clearSession();
+    window.location.href = '../index.html';
+    return null;
+  }
+  const sessionRole = String(session.role).trim().toLowerCase();
+  if (role && sessionRole !== role) {
+    // Sessiya bor, lekin noto'g'ri sahifada — cheksiz aylanmaslik uchun
+    // to'g'ridan-to'g'ri tegishli panelga yo'naltiramiz, index.html'ga emas.
+    window.location.href = sessionRole === 'admin' ? 'admin.html' : 'branch.html';
+    return null;
+  }
+  return session;
+}
+
+function logout() {
+  clearSession();
+  window.location.href = '../index.html';
+}
+
+// ---------- Umumiy UI yordamchilari ----------
+
+function showAlert(el, message, type = 'error') {
+  el.textContent = message;
+  el.className = `alert show alert-${type}`;
+}
+
+function hideAlert(el) {
+  el.className = 'alert';
+}
+
+function statusMeta(status) {
+  switch (status) {
+    case 'Tasdiqlandi':
+      return { cls: 'status-approved', label: 'Tasdiqlandi' };
+    case 'Qaytarildi':
+      return { cls: 'status-returned', label: 'Qaytarildi' };
+    case 'Yuborilmadi':
+      return { cls: 'status-returned', label: 'Yuborilmadi' };
+    case 'Mavjud emas':
+      return { cls: 'status-na', label: 'Mavjud emas' };
+    case 'Almashtirildi':
+      return { cls: 'status-na', label: 'Almashtirildi (yangi versiya bor)' };
+    default:
+      return { cls: 'status-pending', label: 'Yuborildi' };
+  }
+}
+
+// Har bir hisobot uchun jarayon bosqichlarini ko'rsatuvchi stepper (signature UI)
+function renderStepper(status) {
+  if (status === 'Yuborilmadi') {
+    return `<div class="stepper"><div class="stepper__node is-danger"><span class="stepper__dot"></span>Muddati o'tdi — yuborilmadi</div></div>`;
+  }
+
+  if (status === 'Mavjud emas') {
+    return `<div class="stepper"><div class="stepper__node"><span class="stepper__dot"></span>Filialda mavjud emas deb belgilangan</div></div>`;
+  }
+
+  if (status === 'Almashtirildi') {
+    return `<div class="stepper"><div class="stepper__node"><span class="stepper__dot"></span>Qayta yuborilgan — yangi versiyaga qarang</div></div>`;
+  }
+
+  const steps = [
+    { key: 'sent', label: 'Yuborildi' },
+    { key: 'review', label: 'Ko\'rib chiqilmoqda' },
+    { key: 'result', label: status === 'Qaytarildi' ? 'Qaytarildi' : 'Tasdiqlandi' }
+  ];
+
+  let doneCount = 1;
+  let activeKey = 'review';
+  let dangerLast = false;
+
+  if (status === 'Tasdiqlandi') { doneCount = 3; activeKey = null; }
+  else if (status === 'Qaytarildi') { doneCount = 3; activeKey = null; dangerLast = true; }
+  else { doneCount = 1; activeKey = 'review'; }
+
+  return `<div class="stepper">${steps.map((s, i) => {
+    let cls = '';
+    if (i < doneCount - 1) cls = 'is-done';
+    else if (i === doneCount - 1 && (status === 'Tasdiqlandi' || status === 'Qaytarildi')) {
+      cls = dangerLast && i === 2 ? 'is-danger' : 'is-done';
+    } else if (s.key === activeKey) cls = 'is-active';
+    return `<div class="stepper__node ${cls}"><span class="stepper__dot"></span>${s.label}</div>${i < steps.length - 1 ? '<span class="stepper__line"></span>' : ''}`;
+  }).join('')}</div>`;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
