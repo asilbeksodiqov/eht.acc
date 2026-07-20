@@ -61,8 +61,12 @@
       </div>
 
       <div class="btn-row">
-        <button type="submit" class="btn btn-accent btn-block" id="submitBtn">Yuborish</button>
+        <button type="submit" class="btn btn-accent btn-block btn-progress" id="submitBtn">
+          <span class="btn-progress__fill" id="submitBtnFill"></span>
+          <span class="btn-progress__label" id="submitBtnLabel">Yuborish</span>
+        </button>
       </div>
+      <div class="upload-notice" id="uploadNotice">⏳ Iltimos, fayllar yuborilib bo'lguncha oynani yopmay turing</div>
     </form>
   </div>
 
@@ -88,6 +92,15 @@
 
 <!-- Qayta yuborish uchun yashirin fayl input (bir nechta fayl tanlash mumkin) -->
 <input type="file" id="resubmitFileInput" multiple style="display:none;" accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.zip,.rar,.txt">
+
+<!-- Kirganda chiqadigan qisqa ogohlantirish: bugungi yubormagan hujjatlar yoki dam kuni salomi -->
+<div class="modal-overlay" id="todayStatusModal">
+  <div class="modal modal--compact">
+    <button type="button" class="modal__close" id="todayStatusCloseBtn">✕</button>
+    <h3 class="modal__title" id="todayStatusTitle">Yuklanmoqda...</h3>
+    <div id="todayStatusBody"></div>
+  </div>
+</div>
 
 <!-- Telefon uchun pastki navigatsiya -->
 <nav class="bottom-nav">
