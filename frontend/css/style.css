@@ -619,6 +619,7 @@ button, input, select, textarea {
 .modal__title {
   font-size: 17px;
   margin-bottom: 10px;
+  padding-right: 24px;
 }
 .modal__desc {
   font-size: 13.5px;
@@ -639,6 +640,40 @@ button, input, select, textarea {
 }
 .btn-row .btn-block { flex: 1; }
 
+/* ---------- Submit button as an upload progress bar ---------- */
+.btn-progress {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.btn-progress__fill {
+  position: absolute;
+  inset: 0;
+  width: 0%;
+  background: var(--accent-ink);
+  transition: width 0.2s ease;
+  z-index: 0;
+}
+.btn-progress__label {
+  position: relative;
+  z-index: 1;
+}
+.upload-notice {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 13px;
+  border-radius: var(--radius-sm);
+  background: var(--pending-soft);
+  color: var(--pending);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  justify-content: center;
+}
+.upload-notice.show { display: flex; }
+
 /* ---------- Reyting: yuqoridagi kichik tugma + modal ---------- */
 .rank-launcher {
   display: inline-flex;
@@ -657,6 +692,7 @@ button, input, select, textarea {
 .rank-launcher:hover { background: var(--accent); color: #fff; }
 
 .modal--wide { max-width: 480px; }
+.modal--compact { max-width: 340px; padding: 22px; }
 .modal__body-scroll {
   max-height: 60vh;
   overflow-y: auto;
