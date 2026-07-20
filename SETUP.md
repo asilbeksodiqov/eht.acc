@@ -32,7 +32,7 @@ Quyidagi qadamlarni ketma-ket bajaring.
 | Kafolat xati | 2 | 15 |
 
 - `byWho`: **1** = buxgalter yuboradi, **2** = kassir yuboradi. Bu qiymat avtomatik ravishda `SubmissionID`ning oxiriga qo'shiladi (masalan `000123-1`), lekin saytda alohida login talab qilinmaydi — filial xodimi bitta umumiy login bilan kirib, hujjat turini tanlashi bilan tizim kimga tegishli ekanini o'zi biladi.
-- `Period`: **1** = bu hujjat turi har kuni yuborilishi kerak (har doim ochiq). **15** = faqat oyning **15-kuni** va **oxirgi kunida** yuborish tugmasi ochiq bo'ladi, qolgan kunlari yopiq turadi.
+- `Period`: **1** = bu hujjat turi **har kuni MAJBURIY** hisoblanadi — shanba/yakshanbadan tashqari har bir ish kuni yuborilishi shart, aks holda avtomatik "Yuborilmadi" deb belgilanadi va filial panelidagi "Bugun hali yubormagan hujjatlaringiz" oynasida ko'rsatiladi. **1 dan boshqa har qanday qiymat** (masalan `15`) = davriy hujjat turi — u ham istalgan ish kunida yuborilishi mumkin (dam kunlaridan tashqari har doim ochiq), lekin **majburiy emas**: filial yubormasa ham "Yuborilmadi" xatosi hisoblanmaydi va "yubormadingiz" oynasida chiqmaydi. Katakcha bo'sh qoldirilsa ham xuddi shunday — majburiy emas deb hisoblanadi (shuning uchun har bir majburiy hujjat turi uchun `Period` katakchasiga albatta aniq **1** raqami yozilishi kerak).
 
 ### `Report` listi
 Faqat sarlavhalarni yozing (ma'lumotlar avtomatik to'ladi):
