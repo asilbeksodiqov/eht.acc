@@ -18,6 +18,42 @@ async function apiPost(action, data = {}) {
   }
 }
 
+// fetch() bilan yuklanish jarayonini (progress) kuzatib bo'lmaydi, shu
+// sababli fayl yuklanishi kerak bo'lgan so'rovlar (masalan hujjat
+// yuborish) uchun XMLHttpRequest ishlatiladi — u haqiqiy yuborilgan
+// bayt/umumiy bayt nisbatiga qarab foizni beradi (ya'ni foiz aynan
+// fayllar yuborilish TEZLIGI va VAQTIGA qarab harakat qiladi, sun'iy
+// animatsiya emas). `onProgress(percent)` har safar yangi ma'lumot
+// yuborilganda chaqiriladi (0-99 oralig'ida; 100% javob kelganda
+// chaqiruvchi tomonda qo'yiladi).
+function apiPostWithProgress(action, data = {}, onProgress) {
+  return new Promise((resolve) => {
+    try {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', API_URL, true);
+      xhr.upload.onprogress = function (e) {
+        if (typeof onProgress === 'function' && e.lengthComputable) {
+          const pct = Math.max(0, Math.min(99, Math.round((e.loaded / e.total) * 100)));
+          onProgress(pct);
+        }
+      };
+      xhr.onload = function () {
+        try {
+          resolve(JSON.parse(xhr.responseText));
+        } catch (err) {
+          resolve({ success: false, message: "Serverdan noto'g'ri javob keldi" });
+        }
+      };
+      xhr.onerror = function () {
+        resolve({ success: false, message: "Serverga ulanib bo'lmadi. Internetni yoki API_URL sozlamasini tekshiring." });
+      };
+      xhr.send(JSON.stringify({ action, ...data }));
+    } catch (err) {
+      resolve({ success: false, message: "Serverga ulanib bo'lmadi. Internetni yoki API_URL sozlamasini tekshiring." });
+    }
+  });
+}
+
 async function apiGet(action, params = {}) {
   try {
     const query = new URLSearchParams({ action, ...params }).toString();
