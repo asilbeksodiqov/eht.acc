@@ -15,9 +15,30 @@
   const resubmitFileInput = document.getElementById('resubmitFileInput');
   const videoTelegramField = document.getElementById('videoTelegramField');
   const videoTelegramCheck = document.getElementById('videoTelegramCheck');
+  const submitBtnFill = document.getElementById('submitBtnFill');
+  const submitBtnLabel = document.getElementById('submitBtnLabel');
+  const uploadNotice = document.getElementById('uploadNotice');
+  const todayStatusModal = document.getElementById('todayStatusModal');
+  const todayStatusTitle = document.getElementById('todayStatusTitle');
+  const todayStatusBody = document.getElementById('todayStatusBody');
+  const todayStatusCloseBtn = document.getElementById('todayStatusCloseBtn');
 
   let resubmitTargetId = null;
   let docTypesData = [];
+
+  function closeTodayStatusModal() {
+    todayStatusModal.classList.remove('show');
+  }
+  todayStatusCloseBtn.addEventListener('click', closeTodayStatusModal);
+  todayStatusModal.addEventListener('click', (e) => {
+    if (e.target === todayStatusModal) closeTodayStatusModal();
+  });
+
+  // Tugma ustidagi progress-bar holatini yangilaydi (0-100 foiz).
+  function setSubmitProgress(percent, label) {
+    submitBtnFill.style.width = percent + '%';
+    submitBtnLabel.textContent = label;
+  }
 
   // Faqat shu nomdagi hujjat turi uchun kunlik soat oynasi (frontend
   // tomonda tekshiriladi). Kerak bo'lsa shu ro'yxatga boshqa hujjat
@@ -52,6 +73,36 @@
     historyDateFilter.value = todayStr_();
     loadDocTypes();
     loadHistory();
+    showTodayStatusModal();
+  }
+
+  // Filial panelga kirganda chiqadigan qisqa ogohlantirish oynasi:
+  // bugun dam kuni bo'lsa — yoqimli hordiq xabari; ish kuni bo'lsa —
+  // bugun hali yubormagan (faqat HAR KUNI MAJBURIY, ya'ni DocType
+  // listida Period=1 bo'lgan) hujjat turlari ro'yxati (agar hammasi
+  // yuborilgan bo'lsa — tabrik xabari). Oyna avtomatik yopilmaydi —
+  // foydalanuvchi "✕" tugmasi yoki fondan tashqariga bosish orqali
+  // o'zi yopadi.
+  async function showTodayStatusModal() {
+    const res = await apiGet('getTodayMissing', { branch: session.branch });
+    if (!res.success) return;
+
+    if (res.isWeekend) {
+      todayStatusTitle.textContent = 'Dam kuni 🌿';
+      todayStatusBody.innerHTML = `<p class="modal__desc" style="margin-bottom:0;">Bugun dam kuni — hujjat talab qilinmaydi. Dam kunlari yoqimli hordiq tilaymiz!</p>`;
+    } else if (res.items && res.items.length) {
+      todayStatusTitle.textContent = "Bugun hali yubormagan hujjatlaringiz";
+      todayStatusBody.innerHTML = `
+        <p class="modal__desc">Quyidagi hujjat turlarini hali yubormadingiz:</p>
+        <ul style="margin:0 0 4px; padding-left:18px; font-size:13.5px; color:var(--ink-soft); line-height:1.7;">
+          ${res.items.map(i => `<li>${escapeHtml(i.docType)}</li>`).join('')}
+        </ul>`;
+    } else {
+      todayStatusTitle.textContent = 'Ajoyib! ✅';
+      todayStatusBody.innerHTML = `<p class="modal__desc" style="margin-bottom:0;">Bugungi barcha hujjatlaringiz yuborilgan.</p>`;
+    }
+
+    todayStatusModal.classList.add('show');
   }
 
   function todayStr_() {
@@ -70,7 +121,7 @@
       const opt = document.createElement('option');
       opt.value = dt.name;
       let label = dt.name;
-      if (Number(dt.period) > 1) label;
+      if (Number(dt.period) > 1) label += ' (davriy)';
       if (!dt.isOpenToday) {
         label += ' — bugun dam kuni, yopiq';
         opt.disabled = true;
@@ -135,7 +186,8 @@
     }
 
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Yuborilmoqda...';
+    setSubmitProgress(0, '0%');
+    uploadNotice.classList.add('show');
 
     try {
       // Bir nechta fayl tanlangan bo'lsa ham, hammasi BITTA so'rov bilan
@@ -143,12 +195,18 @@
       // SubmissionID) hosil bo'ladi, fayllar esa shu qatorning
       // FilePath'i ko'rsatgan bitta papkaga joylanadi.
       const filesPayload = await filesToPayload(files);
-      const res = await apiPost('submitDocument', {
+
+      // Progress-bar foizi haqiqiy yuborish tezligi/vaqtiga qarab
+      // harakat qiladi (XMLHttpRequest'ning upload.onprogress hodisasi
+      // orqali) — sun'iy/animatsion emas.
+      const res = await apiPostWithProgress('submitDocument', {
         branch: session.branch,
         docType,
         files: filesPayload,
         videoSentViaTelegram: videoTelegramField.style.display !== 'none' && videoTelegramCheck.checked
-      });
+      }, (pct) => setSubmitProgress(pct, pct + '%'));
+
+      setSubmitProgress(100, '100%');
 
       if (res.success) {
         submitForm.reset();
@@ -162,8 +220,9 @@
       showAlert(submitAlert, "Yuborib bo'lmadi. Internetni tekshiring va qayta urinib ko'ring");
     }
 
+    uploadNotice.classList.remove('show');
     submitBtn.disabled = false;
-    submitBtn.textContent = 'Yuborish';
+    setSubmitProgress(0, 'Yuborish');
 
     loadHistory();
   });
