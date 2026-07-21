@@ -315,8 +315,12 @@
 
   function renderHistoryItem(item) {
     const meta = statusMeta(item.status);
-    const canResubmit = item.status === 'Qaytarildi' || item.status === 'Yuborilmadi';
-    const resubmitLabel = item.status === 'Yuborilmadi' ? 'Yuborish' : 'Qayta yuborish';
+    // "Yuborilmadi" (o'tib ketgan, yuborilmagan kun) statusidagi
+    // hujjatlar uchun filial tugma orqali qayta/orqadan yubora olmaydi —
+    // sana faqat BUGUNGI kun bilan ishlaydi, o'tgan sanani faqat admin
+    // "edit" orqali almashtira oladi.
+    const canResubmit = item.status === 'Qaytarildi';
+    const resubmitLabel = 'Qayta yuborish';
     const note = ((item.status === 'Qaytarildi' || item.status === 'Almashtirildi') && (item.errorType || item.comment))
       ? `<div class="history-item__note"><strong>${escapeHtml(item.errorType || 'Izoh')}:</strong> ${escapeHtml(item.comment || '')}</div>`
       : '';
