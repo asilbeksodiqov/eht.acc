@@ -47,7 +47,7 @@
   // tomonda tekshiriladi). Kerak bo'lsa shu ro'yxatga boshqa hujjat
   // turlarini ham xuddi shunday qo'shish mumkin.
   const HOURLY_WINDOW_DOC_TYPES = {
-    'Касса хужжатлари': { startHour: 7, endHour: 11 }
+    'Касса хужжатлари': { startHour: 7, endHour: 10 }
   };
 
   // Berilgan hujjat turi uchun hozir soat oynasi ochiqmi (agar shu turga
