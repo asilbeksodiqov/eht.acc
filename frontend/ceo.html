@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ehtirom Workflow — CEO paneli</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/mobile.css">
+<link rel="stylesheet" href="css/ceo.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar__brand">
+    <div class="topbar__mark">EW</div>
+    <div>
+      <div class="topbar__title">Ehtirom Workflow</div>
+      <div class="topbar__subtitle">Bosh admin (CEO) paneli</div>
+    </div>
+  </div>
+  <div class="topbar__right">
+    <a href="rating.html" class="rank-launcher">🏆 Reyting</a>
+    <span class="badge-role">CEO</span>
+    <button class="btn-logout" onclick="logout()">Chiqish</button>
+  </div>
+</header>
+
+<main class="page">
+
+  <div class="ceo-tabs" id="ceoTabs">
+    <button class="ceo-tab is-active" data-tab="reports">📋 Hisobotlar</button>
+    <button class="ceo-tab" data-tab="users">👤 Foydalanuvchilar</button>
+    <button class="ceo-tab" data-tab="branches">🏢 Filiallar</button>
+    <button class="ceo-tab" data-tab="doctypes">📄 Hujjat turlari</button>
+  </div>
+
+  <!-- ============ HISOBOTLAR ============ -->
+  <section class="ceo-panel is-active" id="panel-reports">
+    <div class="page-head">
+      <h1>Hisobotlarni to'liq tahrirlash</h1>
+      <p>Har qanday hisobotni filial, hujjat turi, holat, xato va izohigacha to'liq o'zgartirishingiz mumkin</p>
+    </div>
+
+    <div class="card">
+      <div class="search-grid">
+        <div class="field" style="margin-bottom:0;">
+          <label for="ceoBranchSelect">Filial</label>
+          <select id="ceoBranchSelect"><option value="">Barchasi</option></select>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label for="ceoDateInput">Sana</label>
+          <input type="date" id="ceoDateInput">
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label for="ceoDocTypeSelect">Hujjat turi</label>
+          <select id="ceoDocTypeSelect"><option value="">Barchasi</option></select>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label for="ceoStatusFilterSelect">Holati</label>
+          <select id="ceoStatusFilterSelect">
+            <option value="">Barchasi</option>
+            <option value="sent">Yuborilgan</option>
+            <option value="notSent">Yuborilmagan</option>
+            <option value="returned">Qaytarilgan</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="ceoSearchBtn">Qidirish</button>
+      </div>
+    </div>
+
+    <div id="ceoResultsWrap">
+      <div class="empty-state">
+        <div class="empty-state__icon">🔎</div>
+        <div class="empty-state__title">Qidiruv natijalari shu yerda ko'rinadi</div>
+        <div class="empty-state__desc">Filtrlarni tanlab "Qidirish" tugmasini bosing</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOYDALANUVCHILAR ============ -->
+  <section class="ceo-panel" id="panel-users">
+    <div class="page-head">
+      <h1>Foydalanuvchilar</h1>
+      <p>Admin, buxgalter, kassir va ceo hisoblarini qo'shish/o'chirish</p>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-bottom:14px;">Yangi foydalanuvchi qo'shish</h2>
+      <div class="add-form">
+        <div class="field">
+          <label for="newUserUsername">Username</label>
+          <input type="text" id="newUserUsername">
+        </div>
+        <div class="field">
+          <label for="newUserPassword">Parol</label>
+          <input type="text" id="newUserPassword">
+        </div>
+        <div class="field">
+          <label for="newUserRole">Rol</label>
+          <select id="newUserRole">
+            <option value="admin">Admin</option>
+            <option value="buxgalter">Buxgalter</option>
+            <option value="kassir">Kassir</option>
+            <option value="ceo">CEO</option>
+          </select>
+        </div>
+        <button class="btn btn-accent" id="addUserBtn">Qo'shish</button>
+      </div>
+      <div id="userAlert" class="alert alert-error"></div>
+      <div class="table-scroll">
+        <table class="simple-table">
+          <thead><tr><th>Username</th><th>Rol</th><th></th></tr></thead>
+          <tbody id="usersTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FILIALLAR ============ -->
+  <section class="ceo-panel" id="panel-branches">
+    <div class="page-head">
+      <h1>Filiallar</h1>
+      <p>Yangi filial qo'shilganda unga tegishli login/parol ham birga yaratiladi</p>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-bottom:14px;">Yangi filial qo'shish</h2>
+      <div class="add-form">
+        <div class="field">
+          <label for="newBranchName">Filial nomi</label>
+          <input type="text" id="newBranchName">
+        </div>
+        <div class="field">
+          <label for="newBranchUsername">Username</label>
+          <input type="text" id="newBranchUsername">
+        </div>
+        <div class="field">
+          <label for="newBranchPassword">Parol</label>
+          <input type="text" id="newBranchPassword">
+        </div>
+        <button class="btn btn-accent" id="addBranchBtn">Qo'shish</button>
+      </div>
+      <div id="branchAlert" class="alert alert-error"></div>
+      <div class="table-scroll">
+        <table class="simple-table">
+          <thead><tr><th>Filial</th><th>Username</th><th></th></tr></thead>
+          <tbody id="branchesTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HUJJAT TURLARI ============ -->
+  <section class="ceo-panel" id="panel-doctypes">
+    <div class="page-head">
+      <h1>Hujjat turlari</h1>
+      <p>"Admin guruhi": 1 yoki bo'sh = faqat admin/ceo boshqaradi, 2 = buxgalter ham, 3 = kassir ham boshqara oladi</p>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-bottom:14px;">Yangi hujjat turi qo'shish</h2>
+      <div class="add-form">
+        <div class="field">
+          <label for="newDocTypeName">Nomi</label>
+          <input type="text" id="newDocTypeName">
+        </div>
+        <div class="field">
+          <label for="newDocTypeByWho">byWho (1=Buxgalteriya, 2=Kassa)</label>
+          <input type="number" id="newDocTypeByWho" value="1">
+        </div>
+        <div class="field">
+          <label for="newDocTypePeriod">Period (1=har kuni majburiy)</label>
+          <input type="number" id="newDocTypePeriod" value="1">
+        </div>
+        <div class="field">
+          <label for="newDocTypeAdminGroup">Admin guruhi (1/2/3)</label>
+          <input type="number" id="newDocTypeAdminGroup" value="1">
+        </div>
+        <button class="btn btn-accent" id="addDocTypeBtn">Qo'shish</button>
+      </div>
+      <div id="docTypeAlert" class="alert alert-error"></div>
+      <div class="table-scroll">
+        <table class="simple-table">
+          <thead><tr><th>Nomi</th><th>byWho</th><th>Period</th><th>Admin guruhi</th><th></th></tr></thead>
+          <tbody id="docTypesTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Hisobotni to'liq tahrirlash oynasi -->
+<div class="modal-overlay" id="ceoEditModal">
+  <div class="modal">
+    <button type="button" class="modal__close" id="ceoEditCloseBtn">✕</button>
+    <h3 class="modal__title">Hisobotni to'liq tahrirlash</h3>
+    <p class="modal__desc" style="margin-bottom:16px;">CEO sifatida bu hisobotning istalgan maydonini o'zgartirishingiz mumkin.</p>
+
+    <div id="ceoEditAlert" class="alert alert-error"></div>
+
+    <div class="field">
+      <label for="ceoEditBranch">Filial</label>
+      <select id="ceoEditBranch"></select>
+    </div>
+    <div class="field">
+      <label for="ceoEditDocType">Hujjat turi</label>
+      <select id="ceoEditDocType"></select>
+    </div>
+    <div class="field">
+      <label for="ceoEditUploadDate">Yuborilgan sana</label>
+      <input type="date" id="ceoEditUploadDate">
+    </div>
+    <div class="field">
+      <label for="ceoEditStatus">Holati</label>
+      <select id="ceoEditStatus">
+        <option value="Yuborildi">Yuborildi</option>
+        <option value="Tasdiqlandi">Tasdiqlandi</option>
+        <option value="Qaytarildi">Qaytarildi</option>
+        <option value="Yuborilmadi">Yuborilmadi</option>
+        <option value="Mavjud emas">Mavjud emas</option>
+        <option value="Almashtirildi">Almashtirildi</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="ceoEditErrorType">Xato turi</label>
+      <input type="text" id="ceoEditErrorType">
+    </div>
+    <div class="field">
+      <label for="ceoEditComment">Izoh</label>
+      <textarea id="ceoEditComment"></textarea>
+    </div>
+    <div class="field">
+      <label for="ceoEditVersion">Versiya</label>
+      <input type="number" id="ceoEditVersion" min="1">
+    </div>
+    <div class="field" style="margin-bottom:6px;">
+      <label style="display:flex; align-items:center; gap:8px; font-weight:500;">
+        <input type="checkbox" id="ceoEditVideoTelegram" style="width:auto;">
+        Video Telegram orqali jo'natilgan
+      </label>
+    </div>
+
+    <div class="modal__actions">
+      <button type="button" class="btn btn-ghost" id="ceoEditCancelBtn">Bekor qilish</button>
+      <button type="button" class="btn btn-accent" id="ceoEditSaveBtn">Saqlash</button>
+    </div>
+  </div>
+</div>
+
+<!-- O'chirishni tasdiqlash oynasi (umumiy) -->
+<div class="modal-overlay" id="ceoDeleteModal">
+  <div class="modal">
+    <h3 class="modal__title" id="ceoDeleteTitle">O'chirish</h3>
+    <p class="modal__desc" id="ceoDeleteDesc">Bu amalni ortga qaytarib bo'lmaydi. Davom etasizmi?</p>
+    <div class="modal__actions">
+      <button type="button" class="btn btn-ghost" id="ceoDeleteCancelBtn">Bekor qilish</button>
+      <button type="button" class="btn btn-danger" id="ceoDeleteConfirmBtn">Ha, o'chirish</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <a href="ceo.html" class="bottom-nav__item is-active">
+    <span class="bottom-nav__icon">🏠</span>
+    <span class="bottom-nav__label">Bosh sahifa</span>
+  </a>
+  <a href="rating.html" class="bottom-nav__item">
+    <span class="bottom-nav__icon">🏆</span>
+    <span class="bottom-nav__label">Reyting</span>
+  </a>
+</nav>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/ceo.js"></script>
+</body>
+</html>
