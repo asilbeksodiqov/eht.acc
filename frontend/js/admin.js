@@ -1,6 +1,10 @@
 (function () {
-  const session = requireAuth('admin');
+  const session = requireAuthAny(['admin', 'buxgalter', 'kassir']);
   if (!session) return;
+
+  const ROLE_LABELS = { admin: 'Admin', buxgalter: 'Buxgalter', kassir: 'Kassir' };
+  const roleBadge = document.getElementById('roleBadge');
+  if (roleBadge) roleBadge.textContent = ROLE_LABELS[session.role] || session.role;
 
   const branchSelect = document.getElementById('branchSelect');
   const dateInput = document.getElementById('dateInput');
@@ -74,7 +78,8 @@
       submissionId: editTargetId,
       docType: editDocType.value,
       uploadDate: editUploadDate.value,
-      videoTelegram: editVideoTelegram.checked
+      videoTelegram: editVideoTelegram.checked,
+      role: session.role
     });
 
     editSaveBtn.disabled = false;
@@ -108,7 +113,7 @@
     deleteConfirmBtn.disabled = true;
     deleteConfirmBtn.innerHTML = '<span class="spinner"></span>';
 
-    const res = await apiPost('deleteSubmission', { submissionId: deleteTargetId });
+    const res = await apiPost('deleteSubmission', { submissionId: deleteTargetId, role: session.role });
 
     deleteConfirmBtn.disabled = false;
     deleteConfirmBtn.textContent = 'Ha, o\'chirish';
@@ -131,7 +136,7 @@
   async function init() {
     const [branchesRes, docTypesRes] = await Promise.all([
       apiGet('getBranches'),
-      apiGet('getDocTypes')
+      apiGet('getDocTypes', { role: session.role })
     ]);
 
     if (branchesRes.success) {
@@ -163,7 +168,7 @@
 
   // ---------- Bugungi yuborilmaganlar ----------
   async function loadMissingToday() {
-    const res = await apiGet('getTodayMissing');
+    const res = await apiGet('getTodayMissing', { role: session.role });
     if (!res.success) {
       missingList.innerHTML = `<div class="empty-state"><div class="empty-state__desc">Yuklab bo'lmadi</div></div>`;
       return;
@@ -218,7 +223,8 @@
       branch: branchSelect.value,
       date: dateInput.value,
       docType: docTypeSelect.value,
-      statusFilter: statusFilterSelect.value
+      statusFilter: statusFilterSelect.value,
+      role: session.role
     });
 
     if (!res.success || !res.items.length) {
@@ -443,7 +449,7 @@
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span>';
 
-    const res = await apiPost('adminAction', { submissionId, decision, errorType, comment });
+    const res = await apiPost('adminAction', { submissionId, decision, errorType, comment, role: session.role });
 
     if (!res.success) {
       alert(res.message || 'Amalni bajarishda xatolik yuz berdi');
