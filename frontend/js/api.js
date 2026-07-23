@@ -88,6 +88,20 @@ function clearSession() {
   localStorage.removeItem('ehtirom_session');
 }
 
+// Har bir rol qaysi panelga tegishli ekanini bitta joyda saqlaymiz —
+// shu bilan yo'naltirish mantig'i (login.js, requireAuth) doim mos keladi.
+const ROLE_HOME_PAGE = {
+  admin: 'admin.html',
+  buxgalter: 'admin.html',
+  kassir: 'admin.html',
+  ceo: 'ceo.html',
+  branch: 'branch.html'
+};
+
+function homePageForRole(role) {
+  return ROLE_HOME_PAGE[String(role || '').trim().toLowerCase()] || 'branch.html';
+}
+
 // Sahifani himoya qiladi: kerakli role bo'lmasa login sahifasiga qaytaradi
 function requireAuth(role) {
   const session = getSession();
@@ -100,7 +114,24 @@ function requireAuth(role) {
   if (role && sessionRole !== role) {
     // Sessiya bor, lekin noto'g'ri sahifada — cheksiz aylanmaslik uchun
     // to'g'ridan-to'g'ri tegishli panelga yo'naltiramiz, index.html'ga emas.
-    window.location.href = sessionRole === 'admin' ? 'admin.html' : 'branch.html';
+    window.location.href = homePageForRole(sessionRole);
+    return null;
+  }
+  return session;
+}
+
+// requireAuth'ning ko'p rolga ruxsat beruvchi varianti — masalan admin.html
+// "admin", "buxgalter" va "kassir" rollarining barchasi uchun ochiq.
+function requireAuthAny(roles) {
+  const session = getSession();
+  if (!session || !session.role) {
+    clearSession();
+    window.location.href = '../index.html';
+    return null;
+  }
+  const sessionRole = String(session.role).trim().toLowerCase();
+  if (roles && roles.indexOf(sessionRole) === -1) {
+    window.location.href = homePageForRole(sessionRole);
     return null;
   }
   return session;
