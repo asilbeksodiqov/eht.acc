@@ -2,8 +2,7 @@
   // Allaqachon tizimga kirgan bo'lsa, tegishli panelga yo'naltirish
   const existing = getSession();
   if (existing && existing.role) {
-    const role = String(existing.role).trim().toLowerCase();
-    window.location.href = role === 'admin' ? 'frontend/admin.html' : 'frontend/branch.html';
+    window.location.href = 'frontend/' + homePageForRole(existing.role);
     return;
   }
 
@@ -37,6 +36,6 @@
       branch: res.branch
     });
 
-    window.location.href = res.role === 'admin' ? 'frontend/admin.html' : 'frontend/branch.html';
+    window.location.href = 'frontend/' + homePageForRole(res.role);
   });
 })();
