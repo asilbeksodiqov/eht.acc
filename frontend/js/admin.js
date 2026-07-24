@@ -27,6 +27,7 @@
   const editAlert = document.getElementById('editAlert');
   const editDocType = document.getElementById('editDocType');
   const editUploadDate = document.getElementById('editUploadDate');
+  const editStatus = document.getElementById('editStatus');
   const editVideoTelegram = document.getElementById('editVideoTelegram');
 
   const deleteModal = document.getElementById('deleteModal');
@@ -61,6 +62,7 @@
     allDocTypeNames.forEach(name => editDocType.appendChild(makeOption(name, name)));
     editDocType.value = item.docType;
     editUploadDate.value = item.uploadDate || '';
+    editStatus.value = item.status || 'Yuborildi';
     editVideoTelegram.checked = !!item.videoTelegram;
     editModal.classList.add('show');
   }
@@ -78,6 +80,7 @@
       submissionId: editTargetId,
       docType: editDocType.value,
       uploadDate: editUploadDate.value,
+      status: editStatus.value,
       videoTelegram: editVideoTelegram.checked,
       role: session.role
     });
