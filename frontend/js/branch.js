@@ -336,12 +336,18 @@
         : `<button class="btn btn-ghost btn-sm ack-btn" data-ack="${escapeHtml(item.submissionId)}">Tushunarli</button>`;
     }
 
+    const isFileless = item.status === 'Yuborilmadi' || item.status === 'Mavjud emas' || item.status === 'Almashtirildi';
+    const fileLink = (!isFileless && item.filePath)
+      ? `<a href="${escapeHtml(item.filePath)}" target="_blank" rel="noopener" class="result-card__file">📄 Faylni yoki rasmni ko'rish</a>`
+      : '';
+
     return `
       <div class="history-item">
         <div class="history-item__main">
           <div class="history-item__title">${escapeHtml(item.docType)}</div>
           <div class="history-item__meta">${escapeHtml(item.uploadDate)}${item.uploadTime ? ' · ' + escapeHtml(item.uploadTime) : ''} · Versiya ${escapeHtml(String(item.version))} · ID: ${escapeHtml(item.submissionId)}</div>
           ${renderStepper(item.status)}
+          ${fileLink}
           ${note}
           ${ackBlock}
         </div>
