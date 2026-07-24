@@ -180,11 +180,11 @@
       return;
     }
     if (!isHourWindowOpen_(docType)) {
-      showAlert(submitAlert, `"${docType}" hujjatini faqat ${hourWindowLabel_(docType)} yuborish mumkin`);
+      showAlertWithTelegramHelp(submitAlert, `"${docType}" hujjatini faqat ${hourWindowLabel_(docType)} yuborish mumkin`, session.branch, docType);
       return;
     }
     if (hasVideoFile_(files)) {
-      showAlert(submitAlert, 'Video fayl yuborish mumkin emas. Faqat hujjat yoki rasm tanlang.');
+      showAlertWithTelegramHelp(submitAlert, 'Video fayl yuborish mumkin emas. Faqat hujjat yoki rasm tanlang.', session.branch, docType);
       return;
     }
 
@@ -212,10 +212,10 @@
         videoTelegramField.style.display = 'none';
         showAlert(submitAlert, 'Hujjat muvaffaqiyatli yuborildi', 'success');
       } else {
-        showAlert(submitAlert, res.message || 'Yuborishda xatolik yuz berdi');
+        showAlertWithTelegramHelp(submitAlert, res.message || 'Yuborishda xatolik yuz berdi', session.branch, docType);
       }
     } catch (err) {
-      showAlert(submitAlert, "Yuborib bo'lmadi. Internetni tekshiring va qayta urinib ko'ring");
+      showAlertWithTelegramHelp(submitAlert, "Yuborib bo'lmadi. Internetni tekshiring va qayta urinib ko'ring", session.branch, docType);
     }
 
     uploadNotice.classList.remove('show');
