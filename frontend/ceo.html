@@ -31,6 +31,8 @@
 
   <div class="ceo-tabs" id="ceoTabs">
     <button class="ceo-tab is-active" data-tab="reports">📋 Hisobotlar</button>
+    <button class="ceo-tab" data-tab="submit">📤 Filial nomidan yuborish</button>
+    <button class="ceo-tab" data-tab="download">⬇️ Fayllarni yuklab olish</button>
     <button class="ceo-tab" data-tab="users">👤 Foydalanuvchilar</button>
     <button class="ceo-tab" data-tab="branches">🏢 Filiallar</button>
     <button class="ceo-tab" data-tab="doctypes">📄 Hujjat turlari</button>
@@ -71,6 +73,81 @@
     </div>
 
     <div id="ceoResultsWrap">
+      <div class="empty-state">
+        <div class="empty-state__icon">🔎</div>
+        <div class="empty-state__title">Qidiruv natijalari shu yerda ko'rinadi</div>
+        <div class="empty-state__desc">Filtrlarni tanlab "Qidirish" tugmasini bosing</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FILIAL NOMIDAN YUBORISH ============ -->
+  <section class="ceo-panel" id="panel-submit">
+    <div class="page-head">
+      <h1>Filial nomidan hujjat yuborish</h1>
+      <p>CEO sifatida istalgan filial nomidan hujjat/rasm yuklashingiz mumkin</p>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <label for="ceoSubmitBranch">Filial</label>
+        <select id="ceoSubmitBranch"></select>
+      </div>
+      <div class="field">
+        <label for="ceoSubmitDocType">Hujjat turi</label>
+        <select id="ceoSubmitDocType"></select>
+      </div>
+      <div class="field" style="margin-bottom:6px;">
+        <label for="ceoSubmitFile">Fayl(lar)</label>
+        <input type="file" id="ceoSubmitFile" multiple>
+        <div id="ceoSubmitFileName" class="text-faint" style="font-size:12.5px; margin-top:6px;"></div>
+      </div>
+      <div id="ceoSubmitAlert" class="alert alert-error"></div>
+      <button class="btn btn-accent" id="ceoSubmitBtn">Yuborish</button>
+    </div>
+  </section>
+
+  <!-- ============ FAYLLARNI YUKLAB OLISH ============ -->
+  <section class="ceo-panel" id="panel-download">
+    <div class="page-head">
+      <h1>Fayllarni yuklab olish</h1>
+      <p>Filtrlab qidiring, so'ng har bir hujjatni alohida ko'ring yoki barchasini ZIP qilib yuklab oling</p>
+    </div>
+
+    <div class="card">
+      <div class="search-grid">
+        <div class="field" style="margin-bottom:0;">
+          <label for="dlBranchSelect">Filial</label>
+          <select id="dlBranchSelect"><option value="">Barchasi</option></select>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label for="dlDateInput">Sana</label>
+          <input type="date" id="dlDateInput">
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label for="dlDocTypeSelect">Hujjat turi</label>
+          <select id="dlDocTypeSelect"><option value="">Barchasi</option></select>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label for="dlStatusSelect">Holati</label>
+          <select id="dlStatusSelect">
+            <option value="">Barchasi</option>
+            <option value="sent">Yuborilgan</option>
+            <option value="notSent">Yuborilmagan</option>
+            <option value="returned">Qaytarilgan</option>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label style="display:flex; align-items:center; gap:8px; font-weight:500;">
+            <input type="checkbox" id="dlOnlyErrors" style="width:auto;">
+            Faqat xatosi borlar
+          </label>
+        </div>
+        <button class="btn btn-primary" id="dlSearchBtn">Qidirish</button>
+      </div>
+    </div>
+
+    <div id="dlResultsWrap">
       <div class="empty-state">
         <div class="empty-state__icon">🔎</div>
         <div class="empty-state__title">Qidiruv natijalari shu yerda ko'rinadi</div>
