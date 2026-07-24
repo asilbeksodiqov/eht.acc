@@ -6,6 +6,8 @@
   const tabs = document.querySelectorAll('.ceo-tab');
   const panels = {
     reports: document.getElementById('panel-reports'),
+    submit: document.getElementById('panel-submit'),
+    download: document.getElementById('panel-download'),
     users: document.getElementById('panel-users'),
     branches: document.getElementById('panel-branches'),
     doctypes: document.getElementById('panel-doctypes')
@@ -47,11 +49,17 @@
     allBranchNames = res.branches;
     const ceoBranchSelect = document.getElementById('ceoBranchSelect');
     const ceoEditBranch = document.getElementById('ceoEditBranch');
+    const ceoSubmitBranch = document.getElementById('ceoSubmitBranch');
+    const dlBranchSelect = document.getElementById('dlBranchSelect');
     ceoBranchSelect.innerHTML = '<option value="">Barchasi</option>';
     ceoEditBranch.innerHTML = '';
+    ceoSubmitBranch.innerHTML = '';
+    dlBranchSelect.innerHTML = '<option value="">Barchasi</option>';
     allBranchNames.forEach(b => {
       ceoBranchSelect.appendChild(makeOption(b, b));
       ceoEditBranch.appendChild(makeOption(b, b));
+      ceoSubmitBranch.appendChild(makeOption(b, b));
+      dlBranchSelect.appendChild(makeOption(b, b));
     });
   }
 
@@ -61,11 +69,17 @@
     allDocTypeNames = res.docTypes.map(dt => dt.name);
     const ceoDocTypeSelect = document.getElementById('ceoDocTypeSelect');
     const ceoEditDocType = document.getElementById('ceoEditDocType');
+    const ceoSubmitDocType = document.getElementById('ceoSubmitDocType');
+    const dlDocTypeSelect = document.getElementById('dlDocTypeSelect');
     ceoDocTypeSelect.innerHTML = '<option value="">Barchasi</option>';
     ceoEditDocType.innerHTML = '';
+    ceoSubmitDocType.innerHTML = '';
+    dlDocTypeSelect.innerHTML = '<option value="">Barchasi</option>';
     allDocTypeNames.forEach(name => {
       ceoDocTypeSelect.appendChild(makeOption(name, name));
       ceoEditDocType.appendChild(makeOption(name, name));
+      ceoSubmitDocType.appendChild(makeOption(name, name));
+      dlDocTypeSelect.appendChild(makeOption(name, name));
     });
   }
 
@@ -425,5 +439,135 @@
     tbody.querySelectorAll('button[data-delete]').forEach(btn => {
       btn.addEventListener('click', () => openCeoDeleteModal(btn.getAttribute('data-delete'), 'doctype'));
     });
+  }
+
+  // ================= FILIAL NOMIDAN YUBORISH =================
+  const ceoSubmitBranch = document.getElementById('ceoSubmitBranch');
+  const ceoSubmitDocType = document.getElementById('ceoSubmitDocType');
+  const ceoSubmitFile = document.getElementById('ceoSubmitFile');
+  const ceoSubmitFileName = document.getElementById('ceoSubmitFileName');
+  const ceoSubmitAlert = document.getElementById('ceoSubmitAlert');
+  const ceoSubmitBtn = document.getElementById('ceoSubmitBtn');
+
+  ceoSubmitFile.addEventListener('change', () => {
+    const files = ceoSubmitFile.files;
+    if (!files.length) {
+      ceoSubmitFileName.textContent = '';
+    } else if (files.length === 1) {
+      ceoSubmitFileName.textContent = files[0].name;
+    } else {
+      ceoSubmitFileName.textContent = `${files.length} ta fayl tanlandi: ` + Array.from(files).map(f => f.name).join(', ');
+    }
+  });
+
+  ceoSubmitBtn.addEventListener('click', async () => {
+    hideAlert(ceoSubmitAlert);
+    const branch = ceoSubmitBranch.value;
+    const docType = ceoSubmitDocType.value;
+    const files = ceoSubmitFile.files;
+    if (!branch || !docType || !files.length) {
+      showAlert(ceoSubmitAlert, "Filial, hujjat turi va kamida bitta faylni to'ldiring");
+      return;
+    }
+
+    ceoSubmitBtn.disabled = true;
+    ceoSubmitBtn.innerHTML = '<span class="spinner spinner-dark"></span>';
+
+    try {
+      const filesPayload = await filesToPayload(files);
+      const res = await apiPost('ceoSubmitDocument', { branch, docType, files: filesPayload, role: 'ceo' });
+
+      if (!res.success) {
+        showAlert(ceoSubmitAlert, res.message || 'Yuborishda xatolik yuz berdi');
+      } else {
+        ceoSubmitFile.value = '';
+        ceoSubmitFileName.textContent = '';
+        showAlert(ceoSubmitAlert, 'Hujjat muvaffaqiyatli yuborildi', 'success');
+      }
+    } catch (err) {
+      showAlert(ceoSubmitAlert, "Yuborib bo'lmadi. Internetni tekshiring va qayta urinib ko'ring");
+    }
+
+    ceoSubmitBtn.disabled = false;
+    ceoSubmitBtn.textContent = 'Yuborish';
+  });
+
+  // ================= FAYLLARNI YUKLAB OLISH =================
+  const dlBranchSelect = document.getElementById('dlBranchSelect');
+  const dlDateInput = document.getElementById('dlDateInput');
+  const dlDocTypeSelect = document.getElementById('dlDocTypeSelect');
+  const dlStatusSelect = document.getElementById('dlStatusSelect');
+  const dlOnlyErrors = document.getElementById('dlOnlyErrors');
+  const dlSearchBtn = document.getElementById('dlSearchBtn');
+  const dlResultsWrap = document.getElementById('dlResultsWrap');
+
+  function currentDownloadFilters_() {
+    return {
+      branch: dlBranchSelect.value,
+      date: dlDateInput.value,
+      docType: dlDocTypeSelect.value,
+      statusFilter: dlStatusSelect.value,
+      onlyErrors: dlOnlyErrors.checked,
+      role: 'ceo'
+    };
+  }
+
+  dlSearchBtn.addEventListener('click', async () => {
+    dlResultsWrap.innerHTML = `<div class="empty-state"><div class="empty-state__icon">⏳</div><div class="empty-state__title">Qidirilmoqda...</div></div>`;
+
+    const res = await apiGet('getAdminSubmissions', currentDownloadFilters_());
+    if (!res.success || !res.items.length) {
+      dlResultsWrap.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state__icon">🗂️</div>
+          <div class="empty-state__title">Hujjat topilmadi</div>
+          <div class="empty-state__desc">Tanlangan filtrlar bo'yicha yuborilgan hujjat yo'q</div>
+        </div>`;
+      return;
+    }
+
+    const withFiles = res.items.filter(i => i.filePath);
+    dlResultsWrap.innerHTML = `
+      <div class="card" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+        <div class="text-faint" style="font-size:13px;">Jami ${res.items.length} ta hujjat topildi (${withFiles.length} tasida fayl bor)</div>
+        <button class="btn btn-accent btn-sm" id="dlZipBtn">📦 Barchasini ZIP qilib yuklab olish</button>
+      </div>
+      <div style="margin-top:12px; display:flex; flex-direction:column; gap:8px;">
+        ${res.items.map(renderDownloadItem).join('')}
+      </div>`;
+
+    document.getElementById('dlZipBtn').addEventListener('click', downloadFilteredZip_);
+  });
+
+  function renderDownloadItem(item) {
+    const meta = statusMeta(item.status);
+    return `
+      <div class="compact-item" style="padding:12px 16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+        <div>
+          <div class="compact-item__branch">${escapeHtml(item.branch)} · ${escapeHtml(item.docType)}</div>
+          <div class="history-item__meta">${escapeHtml(item.uploadDate)} · Versiya ${escapeHtml(String(item.version))} · <span class="status-pill ${meta.cls}">${meta.label}</span></div>
+        </div>
+        ${item.filePath
+          ? `<a href="${escapeHtml(item.filePath)}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">📄 Faylni ko'rish / yuklab olish</a>`
+          : `<span class="text-faint" style="font-size:12.5px;">Fayl mavjud emas</span>`}
+      </div>`;
+  }
+
+  async function downloadFilteredZip_() {
+    const btn = document.getElementById('dlZipBtn');
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner spinner-dark"></span>';
+
+    const res = await apiPost('ceoDownloadZip', currentDownloadFilters_());
+
+    btn.disabled = false;
+    btn.textContent = originalText;
+
+    if (!res.success) {
+      alert(res.message || "ZIP yaratishda xatolik yuz berdi");
+      return;
+    }
+    downloadBase64File(res.zipBase64, res.fileName);
   }
 })();
