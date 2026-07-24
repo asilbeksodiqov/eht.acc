@@ -213,3 +213,42 @@ function escapeHtml(str) {
   div.textContent = str ?? '';
   return div.innerHTML;
 }
+
+// Backend'dan kelgan Base64 ZIP ma'lumotini foydalanuvchi kompyuteriga
+// fayl sifatida yuklab beradi (CEO paneli — "Fayllarni yuklab olish").
+function downloadBase64File(base64, fileName, mimeType = 'application/zip') {
+  const byteChars = atob(base64);
+  const byteNumbers = new Array(byteChars.length);
+  for (let i = 0; i < byteChars.length; i++) byteNumbers[i] = byteChars.charCodeAt(i);
+  const byteArray = new Uint8Array(byteNumbers);
+  const blob = new Blob([byteArray], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName || 'ehtirom_fayllar.zip';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+// Filial panelida hujjat yuborilmasdan xatolik chiqqanda, xatolik xabari
+// ostiga qo'shimcha "Yordam so'rash" tugmasi chiqaradi — bu tugma
+// Telegram'da TELEGRAM_HELP_USERNAME bilan chatni ochadi va filial nomi
+// bilan hujjat turini avtomatik yozib qo'yadi.
+function showAlertWithTelegramHelp(el, message, branch, docType) {
+  showAlert(el, message);
+  if (!docType) return; // hujjat turi tanlanmagan bo'lsa, mazmunli xabar tuza olmaymiz
+  const text = `Filial: ${branch || ''}\nHujjat turi: ${docType}\n\nPastda hujjat rasmlarini yuboryapman, muammoni hal qilishda yordam bering.`;
+  const helpUrl = `https://t.me/${TELEGRAM_HELP_USERNAME}?text=${encodeURIComponent(text)}`;
+  const helpBtn = document.createElement('a');
+  helpBtn.href = helpUrl;
+  helpBtn.target = '_blank';
+  helpBtn.rel = 'noopener';
+  helpBtn.className = 'btn btn-ghost btn-sm';
+  helpBtn.style.marginTop = '8px';
+  helpBtn.style.display = 'inline-block';
+  helpBtn.textContent = '🆘 Telegramda yordam so\'rash';
+  el.appendChild(document.createElement('br'));
+  el.appendChild(helpBtn);
+}
