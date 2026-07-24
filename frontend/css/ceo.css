@@ -11,6 +11,17 @@
   padding-bottom: 0;
 }
 
+@media (max-width: 720px) {
+  .ceo-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .ceo-tabs::-webkit-scrollbar { display: none; }
+  .ceo-tab { flex: 0 0 auto; white-space: nowrap; }
+}
+
 .ceo-tab {
   background: transparent;
   border: none;
